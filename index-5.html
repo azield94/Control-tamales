@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Control de Tamales</title>
+<style>
+body{font-family:Arial;margin:0;background:#f5f5f5;color:#222}header{background:#c2410c;color:white;padding:18px}
+main{max-width:1000px;margin:auto;padding:15px}nav{display:flex;gap:7px;overflow:auto;margin-bottom:15px}
+button{padding:10px 13px;border:0;border-radius:9px;cursor:pointer;font-weight:bold;background:#ea580c;color:white;box-shadow:0 2px 5px #0002}button:hover{filter:brightness(.96)}nav button{background:#ea580c;color:white}nav button.active,.primary{background:#ea580c;color:white}
+.card{background:white;border-radius:14px;padding:15px;margin:10px 0;box-shadow:0 2px 8px #0001}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input,select,textarea{width:100%;padding:11px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box;margin:5px 0 12px}.clientRow{cursor:pointer}.clientRow:hover{background:#fff7ed}.statusCheck{width:24px;height:24px;margin:0;cursor:pointer;accent-color:#ea580c}.qtyInput{text-align:center}
+.section{display:none}.section.active{display:block}.muted{color:#666;font-size:13px}.stat{font-size:27px;font-weight:bold}.clickStat{cursor:pointer}
+table{width:100%;border-collapse:collapse}td,th{padding:9px;border-bottom:1px solid #eee;text-align:left}
+.modal{display:none;position:fixed;inset:0;background:#0008;align-items:center;justify-content:center;padding:15px}.modal.show{display:flex}
+.box{background:white;border-radius:15px;padding:18px;width:100%;max-width:650px;max-height:90vh;overflow:auto}
+.head{display:flex;justify-content:space-between}.close{border-radius:50%;background:#eee}
+@media(max-width:700px){.grid{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">🫔 Control de Tamales</h2><div style="display:flex;gap:7px;align-items:center"><span id="cloudUser" style="font-size:12px"></span><button id="logoutBtn" style="display:none;background:#fff;color:#c2410c" onclick="logoutCloud()">Salir</button></div></div></header><main>
+<div class="muted" style="margin-bottom:8px">☁️ Tus cambios se guardan en la nube automáticamente.</div><nav id="nav">
+<button class="active" onclick="show('inicio',this)">Inicio</button><button onclick="show('clientes',this)">Clientes</button>
+<button onclick="show('produccion',this)">Producción</button><button onclick="show('desglose',this)">Desglose</button>
+</nav>
+
+<section id="inicio" class="section active"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><h2>Resumen</h2><button class="primary" onclick="openOrder()">＋ Nuevo pedido</button></div>
+<div class="grid"><div class="card">Pedidos<div class="stat" id="so">0</div></div><div class="card">Tamales<div class="stat" id="st">0</div></div><div class="card clickStat" onclick="openStatusList(true)">Entregados<div class="stat" id="sd">0</div></div><div class="card clickStat" onclick="openStatusList(false)">Pendientes<div class="stat" id="sp">0</div></div></div><div class="card"><h3 style="margin-top:0">Buscar cliente</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="homeSearch" placeholder="Nombre o teléfono" style="flex:1;min-width:200px;margin:5px 0"><button class="primary" onclick="searchFromHome()">Buscar</button></div><div id="homeSearchMsg" class="muted"></div></div></section>
+
+<section id="produccion" class="section"><h2>Producción</h2><div id="prod"></div></section>
+<section id="desglose" class="section"><h2>Desglose</h2><div id="desgloseContent"></div></section>
+<section id="clientes" class="section"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><h2>Clientes</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><button onclick="openEditClientFromTable()">✎ Modificar pedido</button><button class="primary" onclick="openDeleteClient()">− Eliminar cliente</button></div></div><div id="clients"></div></section>
+
+</main>
+
+<div class="modal" id="orderModal"><div class="box"><div class="head"><h2>Nuevo pedido</h2><button class="close" onclick="closeOrder()">×</button></div>
+<form onsubmit="saveOrder(event)">
+<label>Nombre *</label><input id="name" required><label>Teléfono</label><input id="phone">
+<div class="row"><div><label>Fecha *</label><input id="date" type="date" required></div><div>
+<label>Horario de entrega *</label>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+<div><span class="muted">Desde</span><input id="orderStart" type="time" required></div>
+<div><span class="muted">Hasta</span><input id="orderEnd" type="time" required></div>
+</div>
+<div class="muted">Puedes escribir/ajustar directamente el rango para cada pedido.</div>
+</div></div>
+<div class="grid"><div><label>Pollo</label><input id="pollo" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label>Puerco</label><input id="puerco" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label>Rajas</label><input id="rajas" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label>Espinacas</label><input id="espinacas" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label>Piña</label><input id="pina" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label>Fresa</label><input id="fresa" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div></div>
+<button class="primary" style="width:100%">Guardar pedido</button>
+</form></div></div>
+
+<div class="modal" id="duplicateModal"><div class="box" style="max-width:520px"><div class="head"><h2>Cliente ya registrado</h2><button class="close" onclick="closeDuplicate()">×</button></div><div id="duplicateMessage"></div><div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button onclick="closeDuplicate()">Cancelar</button><button class="primary" onclick="addDuplicateAnyway()">Agregar de todos modos</button></div></div></div>
+
+<div class="modal" id="scheduleModal"><div class="box" style="max-width:400px"><div class="head"><h2 id="schTitle">Horario</h2><button class="close" onclick="closeSchedule()">×</button></div>
+<form onsubmit="saveSchedule(event)"><input type="hidden" id="sid"><label>Desde</label><input id="start" type="time" required><label>Hasta</label><input id="end" type="time" required><button class="primary" style="width:100%">Guardar</button></form></div></div>
+
+<div class="modal" id="searchNotFoundModal"><div class="box" style="max-width:420px"><div class="head"><h2>Cliente no registrado</h2><button class="close" onclick="closeSearchNotFound()">×</button></div><p style="margin:14px 0">El cliente que buscas no está registrado.</p><div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="primary" onclick="closeSearchNotFound()">Aceptar</button></div></div></div>
+
+<div class="modal" id="clientResultModal"><div class="box" style="max-width:650px"><div class="head"><h2>Cliente encontrado</h2><button class="close" onclick="closeClientResult()">×</button></div><div id="clientResult"></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="primary" onclick="closeClientResult()">Aceptar</button></div></div></div>
+
+<div class="modal" id="editClientPickerModal"><div class="box" style="max-width:520px"><div class="head"><h2>Modificar pedido</h2><button class="close" onclick="closeEditClientPicker()">×</button></div><p class="muted">Escribe el nombre o número de teléfono del cliente que deseas modificar.</p><input id="editClientSearch" placeholder="Nombre o teléfono" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();findEditClient();}"><button class="primary" style="width:100%" onclick="findEditClient()">Buscar cliente</button><div id="editClientPreview" style="margin-top:14px"></div></div></div>
+
+<div class="modal" id="editOrderModal"><div class="box" style="max-width:520px"><div class="head"><h2>Modificar pedido</h2><button class="close" onclick="closeEditOrder()">×</button></div><div id="editClientInfo" class="muted" style="margin-bottom:8px"></div><form onsubmit="saveEditedOrder(event)"><input type="hidden" id="editOrderId"><label>Horario de entrega</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px"><div><span class="muted">Desde</span><input id="editStart" type="time" required></div><div><span class="muted">Hasta</span><input id="editEnd" type="time" required></div></div><div class="grid"><div><label>Pollo</label><input id="edit_pollo" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label>Puerco</label><input id="edit_puerco" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label>Rajas</label><input id="edit_rajas" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label>Espinacas</label><input id="edit_espinacas" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label>Piña</label><input id="edit_pina" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label>Fresa</label><input id="edit_fresa" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div></div><div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button type="button" onclick="closeEditOrder()">Cancelar</button><button class="primary">Aceptar y actualizar</button></div></form></div></div>
+
+<div class="modal" id="statusListModal"><div class="box" style="max-width:520px"><div class="head"><h2 id="statusListTitle">Entregados</h2><button class="close" onclick="closeStatusList()">×</button></div><div id="statusList"></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="primary" onclick="closeStatusList()">Aceptar</button></div></div></div>
+
+<div class="modal" id="deleteClientModal"><div class="box" style="max-width:520px"><div class="head"><h2>Eliminar cliente</h2><button class="close" onclick="closeDeleteClient()">×</button></div><p class="muted">Escribe el nombre del cliente que deseas eliminar.</p><input id="deleteClientName" placeholder="Nombre del cliente"><button class="primary" style="width:100%" onclick="findDeleteClient()">Buscar cliente</button><div id="deleteClientPreview" style="margin-top:14px"></div></div></div>
+
+<div class="modal show" id="authModal"><div class="box" style="max-width:430px"><div class="head"><h2>☁️ Control de Tamales</h2></div><p class="muted">Inicia sesión para guardar tus pedidos en la nube y usarlos desde otros dispositivos.</p><form onsubmit="authSubmit(event)"><label>Correo electrónico</label><input id="authEmail" type="email" autocomplete="email" required><label>Contraseña</label><input id="authPassword" type="password" minlength="6" autocomplete="current-password" required><div id="authMsg" class="muted" style="min-height:20px"></div><button id="authButton" class="primary" style="width:100%;margin-top:8px">Iniciar sesión</button></form><button id="authToggle" style="width:100%;margin-top:8px;background:#eee;color:#222" onclick="toggleAuthMode()">Crear cuenta nueva</button>
+<button type="button" id="forgotPasswordBtn" style="width:100%;margin-top:8px;background:transparent;color:#c2410c;box-shadow:none" onclick="forgotPassword()">¿Olvidaste tu contraseña?</button></div></div>
+<div class="modal" id="resetModal"><div class="box" style="max-width:430px"><div class="head"><h2>🔐 Nueva contraseña</h2></div><p class="muted">Escribe una nueva contraseña para tu cuenta.</p><form onsubmit="saveNewPassword(event)"><label>Nueva contraseña</label><input id="newPassword" type="password" minlength="6" autocomplete="new-password" required><label>Repite la contraseña</label><input id="newPassword2" type="password" minlength="6" autocomplete="new-password" required><div id="resetMsg" class="muted" style="min-height:20px"></div><button class="primary" style="width:100%;margin-top:8px">Guardar nueva contraseña</button></form></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://yuddjqscdzbkujmdteyz.supabase.co";
+const SUPABASE_KEY="sb_publishable_iqoPVJZNyLvMlz2iD8jknw_Kb8y2N_N";
+const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+let currentUser=null,cloudReady=false,cloudChannel=null;
+
+const fs=['pollo','puerco','rajas','espinacas','pina','fresa'], names={pollo:'Pollo',puerco:'Puerco',rajas:'Rajas',espinacas:'Espinacas',pina:'Piña',fresa:'Fresa'};
+let orders=JSON.parse(localStorage.getItem('tamales_orders')||'[]');
+let schedules=JSON.parse(localStorage.getItem('tamales_schedules')||'null')||[];
+function save(){localStorage.setItem('tamales_orders',JSON.stringify(orders));localStorage.setItem('tamales_schedules',JSON.stringify(schedules));cloudSave();}
+async function cloudSave(){if(!cloudReady||!currentUser)return;const payload={user_id:currentUser.id,orders,schedules,updated_at:new Date().toISOString()};const {error}=await supabaseClient.from('tamales_data').upsert(payload,{onConflict:'user_id'});if(error)console.error('Error al sincronizar:',error);}
+
+const el=id=>document.getElementById(id);
+const fmt=t=>{let [h,m]=t.split(':').map(Number);return (h%12||12)+':'+String(m).padStart(2,'0')+' '+(h>=12?'PM':'AM');};
+const total=o=>fs.reduce((a,f)=>a+(Number(o[f])||0),0);
+let authMode='login';
+function toggleAuthMode(){authMode=authMode==='login'?'signup':'login';el('authButton').textContent=authMode==='login'?'Iniciar sesión':'Crear cuenta';el('authToggle').textContent=authMode==='login'?'Crear cuenta nueva':'Ya tengo una cuenta';el('authMsg').textContent='';}
+async function authSubmit(e){e.preventDefault();const email=el('authEmail').value.trim(),password=el('authPassword').value;if(!email||!password)return;el('authMsg').textContent='Conectando…';let result;if(authMode==='login')result=await supabaseClient.auth.signInWithPassword({email,password});else result=await supabaseClient.auth.signUp({email,password});if(result.error){el('authMsg').textContent=result.error.message;return}if(authMode==='signup'&&!result.data.session){el('authMsg').textContent='Cuenta creada. Revisa tu correo para confirmar la cuenta y después inicia sesión.';return}el('authMsg').textContent='';}
+const PUBLIC_APP_URL='https://control-tamales.netlify.app';
+async function forgotPassword(){const email=el('authEmail').value.trim();if(!email){el('authMsg').textContent='Escribe primero tu correo electrónico.';el('authEmail').focus();return}el('authMsg').textContent='Enviando correo de recuperación…';const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:PUBLIC_APP_URL});el('authMsg').textContent=error?error.message:'Te enviamos un correo para restablecer tu contraseña. Revisa también la carpeta de spam.';}
+async function saveNewPassword(e){e.preventDefault();const p1=el('newPassword').value,p2=el('newPassword2').value;if(p1.length<6){el('resetMsg').textContent='La contraseña debe tener al menos 6 caracteres.';return}if(p1!==p2){el('resetMsg').textContent='Las contraseñas no coinciden.';return}el('resetMsg').textContent='Guardando…';const {error}=await supabaseClient.auth.updateUser({password:p1});if(error){el('resetMsg').textContent=error.message;return}el('resetMsg').textContent='Contraseña actualizada ✓';setTimeout(()=>{el('resetModal').classList.remove('show');el('authModal').classList.add('show');el('authMsg').textContent='Ahora puedes iniciar sesión con tu nueva contraseña.';el('newPassword').value='';el('newPassword2').value='';},700);}
+
+async function startCloudSession(user){currentUser=user;el('authModal').classList.remove('show');el('logoutBtn').style.display='inline-block';el('cloudUser').textContent='☁️ '+(user.email||'Cuenta');const {data,error}=await supabaseClient.from('tamales_data').select('orders,schedules,updated_at').eq('user_id',user.id).maybeSingle();if(error){el('cloudUser').textContent='☁️ Error de nube';console.error(error);return}if(data){orders=Array.isArray(data.orders)?data.orders:[];schedules=Array.isArray(data.schedules)?data.schedules:[];localStorage.setItem('tamales_orders',JSON.stringify(orders));localStorage.setItem('tamales_schedules',JSON.stringify(schedules));}else{orders=JSON.parse(localStorage.getItem('tamales_orders')||'[]');schedules=JSON.parse(localStorage.getItem('tamales_schedules')||'null')||[];await cloudSave()}cloudReady=true;render();setupRealtime(user.id);}
+function setupRealtime(uid){if(cloudChannel)supabaseClient.removeChannel(cloudChannel);cloudChannel=supabaseClient.channel('tamales-cloud-sync').on('postgres_changes',{event:'UPDATE',schema:'public',table:'tamales_data',filter:'user_id=eq.'+uid},payload=>{if(!cloudReady)return;const incoming=payload.new;if(!incoming)return;orders=Array.isArray(incoming.orders)?incoming.orders:[];schedules=Array.isArray(incoming.schedules)?incoming.schedules:[];localStorage.setItem('tamales_orders',JSON.stringify(orders));localStorage.setItem('tamales_schedules',JSON.stringify(schedules));render()}).subscribe();}
+async function logoutCloud(){cloudReady=false;currentUser=null;if(cloudChannel){await supabaseClient.removeChannel(cloudChannel);cloudChannel=null}await supabaseClient.auth.signOut();el('logoutBtn').style.display='none';el('cloudUser').textContent='';el('authEmail').value='';el('authPassword').value='';el('authMsg').textContent='';el('authModal').classList.add('show');}
+async function initCloud(){const {data}=await supabaseClient.auth.getSession();if(data.session)await startCloudSession(data.session.user);else el('authModal').classList.add('show');supabaseClient.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY'){el('authModal').classList.remove('show');el('resetModal').classList.add('show');setTimeout(()=>el('newPassword').focus(),50);return}if(event==='SIGNED_IN'&&session&&!cloudReady)startCloudSession(session.user);if(event==='SIGNED_OUT'){cloudReady=false;currentUser=null;el('authModal').classList.add('show');}});}
+
+function show(id,b){document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));el(id).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));if(b)b.classList.add('active');render();}
+function qtyFocus(input){if(input.value==='0')input.value='';setTimeout(()=>input.select(),0);}
+function qtyBlur(input){if(input.value===''||Number(input.value)<0)input.value='0';}
+function openOrder(){el('orderModal').classList.add('show');el('orderModal').querySelector('form').reset();el('date').value=new Date().toISOString().slice(0,10);el('orderStart').value='12:00';el('orderEnd').value='14:00';fs.forEach(f=>el(f).value=0);}
+function closeOrder(){el('orderModal').classList.remove('show');}
+function saveOrder(e){
+ e.preventDefault();
+ const s0=el('orderStart').value,s1=el('orderEnd').value;
+ if(!s0||!s1)return alert('Escribe la hora desde y hasta.');
+ if(s0>=s1)return alert('La hora final debe ser después de la inicial.');
+ const o={id:Date.now(),name:el('name').value.trim(),phone:el('phone').value.trim(),date:el('date').value,scheduleId:'custom_'+s0+'_'+s1,scheduleLabel:fmt(s0)+' – '+fmt(s1),start:s0,end:s1,notes:'',delivered:false,paid:false};
+ fs.forEach(f=>o[f]=Number(el(f).value)||0);
+ if(!o.name)return alert('Escribe el nombre del cliente.');
+ if(!o.date)return alert('Selecciona la fecha.');
+ const form=el('orderModal').querySelector('form');
+ const editingId=form.dataset.editingId;
+ if(editingId){const idx=orders.findIndex(x=>String(x.id)===String(editingId));if(idx>=0){o.id=orders[idx].id;o.delivered=!!orders[idx].delivered;o.paid=!!orders[idx].paid;orders[idx]=o;save();delete form.dataset.editingId;const btn=form.querySelector('button.primary');if(btn)btn.textContent='Guardar pedido';closeOrder();render();alert('Información del cliente actualizada ✓');return;}}
+ const normName=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,' ');
+ const normPhone=v=>String(v||'').replace(/\D/g,'');
+ if(!total(o))return alert('Agrega al menos un tamal.');
+ // Verificar coincidencias contra TODOS los pedidos registrados.
+ // El nombre se compara aunque cambien mayúsculas, acentos o espacios;
+ // el teléfono se compara ignorando guiones, espacios y paréntesis.
+ const newName=normName(o.name), newPhone=normPhone(o.phone);
+ // Para el nombre se compara SOLO la primera palabra (los caracteres antes del primer espacio).
+ // Ejemplo: "Juan Pérez", "Juan López" y "Juan García" se consideran coincidencias por "Juan".
+ const firstName=v=>normName(v).split(' ')[0]||'';
+ const newFirstName=firstName(o.name);
+ const duplicateMatches=orders.filter(x=>{
+   const oldFirstName=firstName(x.name), oldPhone=normPhone(x.phone);
+   const sameFirstName=!!newFirstName && !!oldFirstName && oldFirstName===newFirstName;
+   const samePhone=!!newPhone && !!oldPhone && oldPhone===newPhone;
+   return sameFirstName || samePhone;
+ });
+ if(duplicateMatches.length){
+   window.pendingDuplicateOrder=o;window.duplicateMatches=duplicateMatches;
+   const reasonsText=duplicateMatches.map(x=>{
+     const r=[];
+     if(firstName(x.name)===newFirstName)r.push('coincide por nombre');
+     if(newPhone && normPhone(x.phone)===newPhone)r.push('coincide por teléfono');
+     return '<li style="margin-bottom:8px"><b>'+x.name+'</b>'+(x.phone?' — '+x.phone:' — Sin teléfono')+' <span class="muted">('+r.join(' y ')+')</span></li>';
+   }).join('');
+   el('duplicateMessage').innerHTML='<p><b>Existe uno o más clientes registrados con ese nombre o número de teléfono.</b></p><p>Clientes encontrados:</p><ul>'+reasonsText+'</ul><p>¿Deseas agregar este pedido de todos modos?</p>';
+   el('duplicateModal').classList.add('show');return;
+ }
+ orders.push(o);save();closeOrder();render();alert('Pedido y cliente guardados ✓');
+}
+function closeDuplicate(){el('duplicateModal').classList.remove('show');window.pendingDuplicateOrder=null;window.duplicateMatches=null;}
+function addDuplicateAnyway(){const o=window.pendingDuplicateOrder;if(!o)return;orders.push(o);save();closeDuplicate();closeOrder();render();alert('Pedido y cliente guardados ✓');}
+function toggle(id){const o=orders.find(x=>String(x.id)===String(id));if(!o)return;o.delivered=!o.delivered;save();render();}
+function parseSchedule(o){
+ let start=(o.start||'').trim(), end=(o.end||'').trim(), label=(o.scheduleLabel||'').trim();
+ const to24=(h,m,ap)=>{h=Number(h);m=String(m).padStart(2,'0');ap=ap.toUpperCase();if(ap==='PM'&&h!==12)h+=12;if(ap==='AM'&&h===12)h=0;return String(h).padStart(2,'0')+':'+m};
+ const norm=t=>/^\d{1,2}:\d{2}$/.test(t)?t.split(':').map((x,i)=>i===0?String(Number(x)).padStart(2,'0'):x).join(':'):'';
+ start=norm(start); end=norm(end);
+ if(!start||!end){const m=label.match(/(\d{1,2}):(\d{2})\s*(AM|PM)\s*[–-]\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);if(m){start=to24(m[1],m[2],m[3]);end=to24(m[4],m[5],m[6]);}}
+ return {start,end,label:start&&end?fmt(start)+' – '+fmt(end):(label||'Sin horario')};
+}
+function clientGroups(){
+ const m={};orders.forEach(o=>{const key=(o.phone||o.name).trim().toLowerCase();if(!m[key])m[key]={key,name:o.name,phone:o.phone,orders:[]};m[key].orders.push(o);});
+ const mins=t=>{if(!t)return 999999;const [h,mi]=t.split(':').map(Number);return h*60+mi};
+ return Object.values(m).sort((a,b)=>{const ta=Math.min(...a.orders.map(o=>mins(parseSchedule(o).start)),999999),tb=Math.min(...b.orders.map(o=>mins(parseSchedule(o).start)),999999);return ta-tb||a.name.localeCompare(b.name)});
+}
+function clientSums(c){const sums={pollo:0,puerco:0,rajas:0,espinacas:0,pina:0,fresa:0};c.orders.forEach(o=>fs.forEach(f=>sums[f]+=Number(o[f])||0));return sums;}
+function openDeleteClient(){el('deleteClientName').value='';el('deleteClientPreview').innerHTML='';el('deleteClientModal').classList.add('show');setTimeout(()=>el('deleteClientName').focus(),50);}
+function closeDeleteClient(){el('deleteClientModal').classList.remove('show');}
+function findDeleteClient(){
+ const q=el('deleteClientName').value.trim().toLowerCase();
+ if(!q)return alert('Escribe el nombre del cliente.');
+ const matches=clientGroups().filter(c=>(c.name+' '+c.phone).toLowerCase().includes(q));
+ if(!matches.length){el('deleteClientPreview').innerHTML='<p class="muted">No encontré un cliente con ese nombre.</p>';return;}
+ if(matches.length>1){
+   el('deleteClientPreview').innerHTML='<p><b>Encontré varios clientes:</b> selecciona uno o más para eliminar.</p><div style="display:grid;gap:8px">'+matches.map((c,i)=>'<label class="card" style="margin:0;padding:11px;display:flex;align-items:center;gap:10px;cursor:pointer"><input class="deleteSelect" type="checkbox" value="'+encodeURIComponent(c.key)+'" style="width:22px;height:22px;margin:0"><span><b>'+(i+1)+'. '+c.name+'</b>'+(c.phone?' — '+c.phone:' — Sin teléfono')+'</span></label>').join('')+'</div><button class="primary" style="width:100%;margin-top:12px" onclick="confirmSelectedDeletes()">Continuar</button>';return;}
+ showDeletePreview(encodeURIComponent(matches[0].key));
+}
+function showDeletePreview(encodedKey){
+ const key=decodeURIComponent(encodedKey),c=clientGroups().find(x=>x.key===key);if(!c)return;
+ const sums=clientSums(c),ct=fs.reduce((a,f)=>a+sums[f],0),num=clientGroups().findIndex(x=>x.key===key)+1;
+ el('deleteClientPreview').innerHTML='<div class="card"><h3 style="margin-top:0">Datos del cliente</h3><p><b>N.º de cliente:</b> '+num+'</p><p><b>Cliente:</b> '+c.name+'</p><p><b>Teléfono:</b> '+(c.phone||'—')+'</p><p><b>Pedidos registrados:</b> '+c.orders.length+'</p><p><b>Pollo:</b> '+sums.pollo+' &nbsp; <b>Puerco:</b> '+sums.puerco+' &nbsp; <b>Rajas:</b> '+sums.rajas+' &nbsp; <b>Espinacas:</b> '+sums.espinacas+' &nbsp; <b>Piña:</b> '+sums.pina+' &nbsp; <b>Fresa:</b> '+sums.fresa+'</p><p><b>Total de tamales:</b> '+ct+'</p><p style="color:#b91c1c"><b>⚠ Al eliminarlo también se eliminarán todos sus pedidos.</b></p><div style="display:flex;gap:8px;justify-content:flex-end"><button onclick="closeDeleteClient()">Cancelar</button><button class="primary" onclick="confirmDeleteClient(\''+encodeURIComponent(key)+'\')">Eliminar definitivamente</button></div></div>';
+}
+function confirmSelectedDeletes(){
+ const keys=[...document.querySelectorAll('#deleteClientPreview .deleteSelect:checked')].map(x=>decodeURIComponent(x.value));
+ if(!keys.length){alert('Selecciona al menos un cliente.');return;}
+ const selected=clientGroups().filter(c=>keys.includes(c.key));
+ const names=selected.map(c=>c.name).join(', ');
+ if(!confirm('¿Eliminar definitivamente a '+selected.length+' cliente(s) y todos sus pedidos?\n\n'+names))return;
+ orders=orders.filter(o=>!keys.includes((o.phone||o.name).trim().toLowerCase()));
+ save();closeDeleteClient();render();alert('Cliente(s) eliminado(s) ✓');
+}
+function confirmDeleteClient(encodedKey){
+ const key=decodeURIComponent(encodedKey),c=clientGroups().find(x=>x.key===key);if(!c)return;
+ if(!confirm('¿Eliminar definitivamente a '+c.name+' y todos sus pedidos?'))return;
+ orders=orders.filter(o=>(o.phone||o.name).trim().toLowerCase()!==key);save();closeDeleteClient();render();alert('Cliente eliminado ✓');
+}
+function renderClients(){
+ const cc=clientGroups();
+ el('clients').innerHTML=cc.length?'<div class="card" style="overflow:auto"><table><tr><th>N.º cliente</th><th>Cliente</th><th>Teléfono</th><th>Horario</th><th>Pollo</th><th>Puerco</th><th>Rajas</th><th>Espinacas</th><th>Piña</th><th>Fresa</th><th>Total tamales</th><th>Total pago</th><th>Estado</th><th>Pagado</th></tr>'+cc.map(c=>{const sums=clientSums(c),ct=fs.reduce((a,f)=>a+sums[f],0),num=cc.findIndex(x=>x.key===c.key)+1,hs=[...new Set(c.orders.map(o=>parseSchedule(o).label))].join('<br>'),allDelivered=c.orders.length>0&&c.orders.every(o=>o.delivered),allPaid=c.orders.length>0&&c.orders.every(o=>o.paid===true);return '<tr id="client-'+encodeURIComponent(c.key)+'" class="clientRow" data-client-key="'+encodeURIComponent(c.key)+'" ><td>'+num+'</td><td><b>'+c.name+'</b></td><td>'+c.phone+'</td><td>'+hs+'</td><td>'+sums.pollo+'</td><td>'+sums.puerco+'</td><td>'+sums.rajas+'</td><td>'+sums.espinacas+'</td><td>'+sums.pina+'</td><td>'+sums.fresa+'</td><td><b>'+ct+'</b></td><td><b>'+(ct*3)+'</b></td><td style="text-align:center"><input class="statusCheck" type="checkbox" onclick="event.stopPropagation()" '+(allDelivered?'checked':'')+' onchange="setClientStatus(\''+encodeURIComponent(c.key)+'\',this.checked)" aria-label="Marcar como entregado"></td><td style="text-align:center"><input class="statusCheck" type="checkbox" onclick="event.stopPropagation()" '+(allPaid?'checked':'')+' onchange="setClientPaid(\''+encodeURIComponent(c.key)+'\',this.checked)" aria-label="Marcar como pagado"></td></tr>';}).join('')+'</table></div>':'<p class="muted">Todavía no hay clientes guardados.</p>';
+
+ bindClientRowClicks();
+}
+// Abrir la ficha al tocar una fila de cliente. Se usa un listener real para evitar problemas con onclick inline.
+function bindClientRowClicks(){
+ document.querySelectorAll('#clients .clientRow').forEach(row=>{
+   row.addEventListener('click',function(e){
+     if(e.target.closest('input,button,a,label')) return;
+     const key=this.getAttribute('data-client-key');
+     if(key) showClientResultByKey(key);
+   });
+ });
+}
+
+function updateStats(){
+ const allTotal=orders.reduce((a,o)=>a+total(o),0),delivered=orders.filter(o=>o.delivered).length;
+ el('so').textContent=orders.length;el('st').textContent=allTotal;el('sd').textContent=delivered;el('sp').textContent=orders.length-delivered;
+}
+function setClientStatus(encodedKey,checked){
+ const key=decodeURIComponent(encodedKey);
+ orders.forEach(o=>{if((o.phone||o.name).trim().toLowerCase()===key)o.delivered=!!checked;});
+ save();
+ updateStats();
+ // No render aquí: así la tabla conserva exactamente la posición donde estabas.
+}
+function setClientPaid(encodedKey,checked){
+ const key=decodeURIComponent(encodedKey);
+ orders.forEach(o=>{if((o.phone||o.name).trim().toLowerCase()===key)o.paid=!!checked;});
+ save();
+}
+function closeStatusList(){el('statusListModal').classList.remove('show');}
+function openStatusList(delivered){
+ const cc=clientGroups().filter(c=>c.orders.length>0 && c.orders.every(o=>!!o.delivered)===delivered);
+ el('statusListTitle').textContent=delivered?'Entregados':'Pendientes';
+ if(!cc.length){el('statusList').innerHTML='<p class="muted">No hay clientes en esta lista.</p>';}else{
+   el('statusList').innerHTML='<div class="card" style="margin:0"><table><tr><th>N.º</th><th>Cliente</th></tr>'+cc.map(c=>{const num=clientGroups().findIndex(x=>x.key===c.key)+1;return '<tr><td>'+num+'</td><td><b>'+c.name+'</b></td></tr>';}).join('')+'</table></div>';
+ }
+ el('statusListModal').classList.add('show');
+}
+function closeEditOrder(){el('editOrderModal').classList.remove('show');}
+function findClientByKey(key){return clientGroups().find(x=>x.key===key);}
+function openEditOrderForClient(encodedKey){
+ const key=decodeURIComponent(encodedKey),c=findClientByKey(key);if(!c||!c.orders.length)return;
+ const o=[...c.orders].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||Number(b.id)-Number(a.id))[0];
+ el('editOrderId').value=o.id;el('editClientInfo').innerHTML='<b>Cliente:</b> '+c.name+(c.phone?' — '+c.phone:'');
+ const sc=parseSchedule(o);el('editStart').value=sc.start||o.start||'12:00';el('editEnd').value=sc.end||o.end||'14:00';
+ fs.forEach(f=>el('edit_'+f).value=Number(o[f])||0);
+ el('editOrderModal').classList.add('show');
+}
+function closeEditClientPicker(){el('editClientPickerModal').classList.remove('show');el('editClientSearch').value='';el('editClientPreview').innerHTML='';}
+function openEditClientFromTable(){
+ el('editClientSearch').value='';
+ el('editClientPreview').innerHTML='';
+ el('editClientPickerModal').classList.add('show');
+ setTimeout(()=>el('editClientSearch').focus(),50);
+}
+function findEditClient(){
+ const q=el('editClientSearch').value.trim();
+ if(!q){el('editClientSearch').focus();return;}
+ const needle=q.toLowerCase().replace(/\s+/g,' '),phoneNeedle=q.replace(/\D/g,'');
+ const matches=clientGroups().filter(c=>{
+   const name=String(c.name||'').trim().toLowerCase().replace(/\s+/g,' ');
+   const phone=String(c.phone||'').replace(/\D/g,'');
+   return name.includes(needle) || (phoneNeedle && phone.includes(phoneNeedle));
+ });
+ if(!matches.length){
+   el('editClientPreview').innerHTML='<div class="card" style="margin:0"><p style="margin:0 0 10px">El cliente que buscas no está registrado.</p><button class="primary" style="width:100%" onclick="el(\'editClientSearch\').focus()">Aceptar</button></div>';
+   return;
+ }
+ el('editClientSearch').value='';
+ if(matches.length===1){closeEditClientPicker();openEditOrderForClient(encodeURIComponent(matches[0].key));return;}
+ el('editClientPreview').innerHTML='<div class="card" style="margin:0"><b>Selecciona un cliente:</b><div style="display:grid;gap:8px;margin-top:10px">'+matches.map(c=>'<button style="width:100%;text-align:left" onclick="closeEditClientPicker();openEditOrderForClient(\''+encodeURIComponent(c.key)+'\')"><b>'+c.name+'</b>'+(c.phone?' — '+c.phone:'')+'</button>').join('')+'</div></div>';
+}
+function saveEditedOrder(e){
+ e.preventDefault();
+ const id=el('editOrderId').value,o=orders.find(x=>String(x.id)===String(id));if(!o)return;
+ const s0=el('editStart').value,s1=el('editEnd').value;
+ if(!s0||!s1)return alert('Escribe la hora desde y hasta.');
+ if(s0>=s1)return alert('La hora final debe ser después de la inicial.');
+ fs.forEach(f=>o[f]=Number(el('edit_'+f).value)||0);
+ if(!total(o))return alert('Agrega al menos un tamal.');
+ o.start=s0;o.end=s1;o.scheduleId='custom_'+s0+'_'+s1;o.scheduleLabel=fmt(s0)+' – '+fmt(s1);
+ save();closeEditOrder();closeClientResult();render();alert('Información del pedido actualizada ✓');
+}
+function closeSearchNotFound(){el('searchNotFoundModal').classList.remove('show');}
+function closeClientResult(){el('clientResultModal').classList.remove('show');}
+function openDeleteFromSearch(encodedKey){
+ const key=decodeURIComponent(encodedKey),c=findClientByKey(key);if(!c)return;
+ if(!confirm('¿Eliminar definitivamente a '+c.name+' y todos sus pedidos?'))return;
+ orders=orders.filter(o=>(o.phone||o.name).trim().toLowerCase()!==key);save();closeClientResult();render();alert('Cliente eliminado ✓');
+}
+function showClientResultByKey(key){
+ try{key=decodeURIComponent(key);}catch(e){}
+ const c=findClientByKey(key);if(!c)return;
+ const sums=clientSums(c),ct=fs.reduce((a,f)=>a+sums[f],0),num=clientGroups().findIndex(x=>x.key===c.key)+1;
+ const allDelivered=c.orders.length>0&&c.orders.every(o=>o.delivered),allPaid=c.orders.length>0&&c.orders.every(o=>o.paid===true);
+ const o=[...c.orders].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||Number(b.id)-Number(a.id))[0];
+ if(!o)return;
+ const sc=parseSchedule(o),enc=encodeURIComponent(c.key);
+ el('clientResult').innerHTML=`<div class="card" style="margin:0">
+ <div style="margin-bottom:12px"><b>Cliente:</b> ${c.name}${c.phone?' — '+c.phone:''}</div>
+ <table>
+ <tr><th>Estado</th><td><label style="display:flex;align-items:center;justify-content:center"><input class="statusCheck" type="checkbox" ${allDelivered?'checked':''} onchange="setClientStatusFromSearch('${enc}',this.checked)"></label></td></tr>
+ <tr><th>Pagado</th><td><label style="display:flex;align-items:center;justify-content:center"><input class="statusCheck" type="checkbox" ${allPaid?'checked':''} onchange="setClientPaidFromSearch('${enc}',this.checked)"></label></td></tr>
+ </table>
+ <div style="margin-top:14px"><b>Horario de entrega</b></div>
+ <div class="row">
+ <div><label>Desde</label><input id="resultEditStart" type="time" value="${sc.start||o.start||'12:00'}"></div>
+ <div><label>Hasta</label><input id="resultEditEnd" type="time" value="${sc.end||o.end||'14:00'}"></div>
+ </div>
+ <div style="margin-top:4px"><b>Cantidad de tamales</b></div>
+ <div class="grid" style="grid-template-columns:repeat(2,1fr)">
+ ${fs.map(f=>`<div><label>${names[f]}</label><input id="resultEdit_${f}" class="qtyInput" type="number" min="0" value="${Number(o[f])||0}" onfocus="this.select()"></div>`).join('')}
+ </div>
+ <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px">
+ <button type="button" onclick="openDeleteFromSearch('${enc}')">− Eliminar cliente</button>
+ <button class="primary" type="button" onclick="confirmClientResultEdit('${enc}',${o.id})">Confirmar modificación</button>
+ </div></div>`;
+ el('clientResultModal').querySelector('.head h2').textContent='Modificar pedido';
+ el('clientResultModal').classList.add('show');
+}
+function confirmClientResultEdit(encodedKey,id){
+ const key=decodeURIComponent(encodedKey),o=orders.find(x=>String(x.id)===String(id));
+ if(!o)return;
+ const s0=el('resultEditStart').value,s1=el('resultEditEnd').value;
+ if(!s0||!s1)return alert('Escribe la hora desde y hasta.');
+ if(s0>=s1)return alert('La hora final debe ser después de la inicial.');
+ fs.forEach(f=>o[f]=Number(el('resultEdit_'+f).value)||0);
+ if(!total(o))return alert('Agrega al menos un tamal.');
+ o.start=s0;o.end=s1;o.scheduleId='custom_'+s0+'_'+s1;o.scheduleLabel=fmt(s0)+' – '+fmt(s1);
+ save();closeClientResult();render();alert('Información del pedido actualizada ✓');
+}
+
+function searchFromHome(){
+ const q=el('homeSearch').value.trim();
+ if(!q){el('homeSearchMsg').textContent='Escribe un nombre o teléfono.';return;}
+ const needle=q.toLowerCase().replace(/\s+/g,' '),phoneNeedle=q.replace(/\D/g,'');
+ const matches=clientGroups().filter(c=>{
+   const name=String(c.name||'').trim().toLowerCase().replace(/\s+/g,' ');
+   const phone=String(c.phone||'').replace(/\D/g,'');
+   return name.includes(needle) || (phoneNeedle && phone.includes(phoneNeedle));
+ });
+ if(!matches.length){el('homeSearch').value='';el('homeSearchMsg').textContent='';el('searchNotFoundModal').classList.add('show');return;}
+ el('homeSearch').value='';el('homeSearchMsg').textContent='';
+ if(matches.length===1){showClientResultByKey(matches[0].key);return;}
+ el('clientResultModal').querySelector('.head h2').textContent='Selecciona un cliente';
+ el('clientResult').innerHTML='<p class="muted">Encontré varios clientes. Selecciona uno para ver su información:</p><div style="display:grid;gap:8px">'+matches.map((c,i)=>'<button style="width:100%;text-align:left" onclick="showClientResultByKey(\''+encodeURIComponent(c.key)+'\')"><b>'+(i+1)+'. '+c.name+'</b>'+(c.phone?' — '+c.phone:'')+'</button>').join('')+'</div>';
+ el('clientResultModal').classList.add('show');
+}
+function setClientStatusFromSearch(encodedKey,checked){
+ const key=decodeURIComponent(encodedKey);
+ orders.forEach(o=>{if((o.phone||o.name).trim().toLowerCase()===key)o.delivered=!!checked;});
+ save();
+ const c=clientGroups().find(x=>x.key===key);
+ if(c){const all=c.orders.length>0&&c.orders.every(o=>o.delivered);const row=el('clientResult').querySelectorAll('input')[0];if(row)row.checked=all;}
+ updateStats();
+ const clientRow=el('client-'+encodeURIComponent(key));
+ if(clientRow){const cb=clientRow.querySelectorAll('input[type=checkbox]')[0];if(cb)cb.checked=checked;}
+}
+function setClientPaidFromSearch(encodedKey,checked){
+ const key=decodeURIComponent(encodedKey);
+ orders.forEach(o=>{if((o.phone||o.name).trim().toLowerCase()===key)o.paid=!!checked;});
+ save();
+ const c=clientGroups().find(x=>x.key===key);
+ if(c){const all=c.orders.length>0&&c.orders.every(o=>o.paid===true);const row=el('clientResult').querySelectorAll('input')[1];if(row)row.checked=all;}
+ const clientRow=el('client-'+encodeURIComponent(key));
+ if(clientRow){const cb=clientRow.querySelectorAll('input[type=checkbox]')[1];if(cb)cb.checked=checked;}
+}
+
+function renderDesglose(){
+ const groups={};
+ orders.forEach(o=>{
+   const t=parseSchedule(o);
+   const key=(t.start&&t.end)?t.start+'_'+t.end:'sin_horario_'+t.label;
+   if(!groups[key])groups[key]={start:t.start||'99:99',end:t.end||'',label:t.label,orders:[]};
+   groups[key].orders.push(o);
+ });
+ const mins=t=>{if(!t)return 999999;const [h,mi]=t.split(':').map(Number);return h*60+mi;};
+ const sorted=Object.values(groups).sort((a,b)=>mins(a.start)-mins(b.start));
+ let d='';
+ sorted.forEach(gr=>{
+   const dozens={},halves={},loose={};
+   fs.forEach(f=>{dozens[f]=0;halves[f]=0;loose[f]=0;});
+
+   // Primero se desglosa CADA cliente y después se suman sus presentaciones.
+   // Así, dos clientes con 6 cada uno producen 2 medias docenas,
+   // en lugar de convertirse en una sola docena.
+   gr.orders.forEach(o=>fs.forEach(f=>{
+     const q=Math.max(0,Number(o[f])||0);
+     dozens[f]+=Math.floor(q/12);
+     const rem=q%12;
+     halves[f]+=Math.floor(rem/6);
+     loose[f]+=rem%6;
+   }));
+
+   d+='<div class="card"><h3 style="margin-top:0">'+gr.label+'</h3><div style="overflow:auto"><table><tr><th>Presentación</th><th>Pollo</th><th>Puerco</th><th>Rajas</th><th>Espinacas</th><th>Piña</th><th>Fresa</th></tr>';
+   const addRow=(label,data)=>{
+     d+='<tr><td><b>'+label+'</b></td>'+fs.map(f=>'<td>'+data[f]+'</td>').join('')+'</tr>';
+   };
+   addRow('Docena',dozens);
+   addRow('1/2 docena',halves);
+   addRow('Sueltos',loose);
+   d+='</table></div></div>';
+ });
+ if(!orders.length)d='<p class="muted">Todavía no hay pedidos registrados.</p>';
+ el('desgloseContent').innerHTML=d;
+}
+
+function render(){
+ const allTotal=orders.reduce((a,o)=>a+total(o),0),delivered=orders.filter(o=>o.delivered).length;
+ el('so').textContent=orders.length;el('st').textContent=allTotal;el('sd').textContent=delivered;el('sp').textContent=orders.length-delivered;
+ const groups={};
+ orders.forEach(o=>{const t=parseSchedule(o);const key=(t.start&&t.end)?t.start+'_'+t.end:'sin_horario_'+t.label;if(!groups[key])groups[key]={start:t.start||'99:99',end:t.end||'',label:t.label,orders:[]};groups[key].orders.push(o);});
+ const mins=t=>{if(!t)return 999999;const [h,mi]=t.split(':').map(Number);return h*60+mi};
+ const sorted=Object.values(groups).sort((a,b)=>mins(a.start)-mins(b.start));
+ let p='';
+ sorted.forEach(gr=>{const sums={pollo:0,puerco:0,rajas:0,espinacas:0,pina:0,fresa:0};gr.orders.forEach(o=>fs.forEach(f=>sums[f]+=Number(o[f])||0));const gt=fs.reduce((a,f)=>a+sums[f],0);p+='<div class="card"><h3 style="margin-top:0">'+gr.label+'</h3><div style="overflow:auto"><table><tr><th>Pollo</th><th>Puerco</th><th>Rajas</th><th>Espinacas</th><th>Piña</th><th>Fresa</th><th>Total</th></tr><tr><td><b>'+sums.pollo+'</b></td><td><b>'+sums.puerco+'</b></td><td><b>'+sums.rajas+'</b></td><td><b>'+sums.espinacas+'</b></td><td><b>'+sums.pina+'</b></td><td><b>'+sums.fresa+'</b></td><td><b>'+gt+'</b></td></tr></table></div></div>';});
+ const grand={pollo:0,puerco:0,rajas:0,espinacas:0,pina:0,fresa:0};
+ orders.forEach(o=>fs.forEach(f=>grand[f]+=Number(o[f])||0));
+ const finalTotal=fs.reduce((a,f)=>a+grand[f],0);
+ if(orders.length)p+='<div class="card" style="border:2px solid currentColor"><h2 style="margin-top:0">TOTAL FINAL</h2><div style="overflow:auto"><table><tr><th>Pollo</th><th>Puerco</th><th>Rajas</th><th>Espinacas</th><th>Piña</th><th>Fresa</th><th>TOTAL FINAL</th></tr><tr><td><b>'+grand.pollo+'</b></td><td><b>'+grand.puerco+'</b></td><td><b>'+grand.rajas+'</b></td><td><b>'+grand.espinacas+'</b></td><td><b>'+grand.pina+'</b></td><td><b>'+grand.fresa+'</b></td><td><b>'+finalTotal+'</b></td></tr></table></div></div>';
+ else p='<p class="muted">Todavía no hay pedidos registrados.</p>';
+ el('prod').innerHTML=p;
+ renderClients();
+ renderDesglose();
+}
+
+render();
+</script></body></html>
