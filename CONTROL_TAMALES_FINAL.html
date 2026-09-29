@@ -1,0 +1,1376 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Control de Tamales</title>
+<style>
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;margin:0;background:radial-gradient(circle at 10% 0%,#fff0df 0,#fff8f1 34%,#f5f1ed 100%);color:#2d211b}header{background:linear-gradient(135deg,#8f2f0b,#c2410c 58%,#e85b12);color:white;padding:14px 18px;box-shadow:0 5px 20px #6b3b1c20;position:sticky;top:0;z-index:900}
+main{max-width:1080px;margin:auto;padding:16px 15px 36px}nav{display:flex;gap:7px;overflow:auto;margin:12px 0 15px;padding:5px;border-radius:15px;background:#fffdfb;border:1px solid #ead8ca;box-shadow:0 5px 18px #6b3b1c0d}
+button{padding:10px 13px;border:0;border-radius:12px;cursor:pointer;font-weight:800;background:linear-gradient(135deg,#a93a0c,#e85b12);color:white;box-shadow:0 4px 12px #c2410c22;transition:.16s}button:hover{transform:translateY(-1px);filter:brightness(.98)}button:hover{filter:brightness(.96)}nav button{background:#ea580c;color:white}nav button.active,.primary{background:#ea580c;color:white}
+.card{background:rgba(255,255,255,.96);border-radius:18px;padding:16px;margin:10px 0;box-shadow:0 9px 26px #6b3b1c10;border:1px solid #f0e1d5}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid #d9c9bd;border-radius:12px;box-sizing:border-box;margin:5px 0 12px;background:#fffdfb;color:#2d211b;outline:none}input:focus,select:focus,textarea:focus{border-color:#c2410c;box-shadow:0 0 0 4px #c2410c12}.clientRow{cursor:pointer}.clientRow:hover{background:#fff7ed}.statusCheck{width:24px;height:24px;margin:0;cursor:pointer;accent-color:#ea580c}.qtyInput{text-align:center}
+.section{display:none}.section.active{display:block}.muted{color:#666;font-size:13px}.stat{font-size:27px;font-weight:bold}.clickStat{cursor:pointer}
+table{width:100%;border-collapse:collapse}td,th{padding:9px;border-bottom:1px solid #eee;text-align:left}
+.modal{display:none;position:fixed;inset:0;background:#0008;align-items:center;justify-content:center;padding:15px;z-index:1000}.modal.show{display:flex}
+.box{background:white;border-radius:15px;padding:18px;width:100%;max-width:650px;max-height:90vh;overflow:auto}
+.head{display:flex;justify-content:space-between}.close{border-radius:50%;background:#eee}
+@media(max-width:700px){.grid{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr}}
+
+.language-picker{display:flex;justify-content:flex-end;align-items:center;position:relative;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;margin-left:auto;margin-right:-2px}
+.language-main{width:112px;min-width:112px;height:52px;padding:8px 14px;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:5px;font-size:15px;font-weight:850;background:#fffdfb;color:#2d211b;border:1px solid #ead8ca;box-shadow:0 5px 16px #3b211412;cursor:pointer}
+
+details.scheduleGroup{margin-bottom:12px;border-radius:10px;background:#fff;border:1px solid #ddd;overflow:hidden}details.scheduleGroup>summary{cursor:pointer;list-style:none;padding:14px 16px;font-size:16px;background:#f7f7f7}details.scheduleGroup>summary::-webkit-details-marker{display:none}details.scheduleGroup>summary:before{content:'▶';display:inline-block;margin-right:8px;font-size:12px;transition:transform .15s}details.scheduleGroup[open]>summary:before{transform:rotate(90deg)}details.scheduleGroup>summary .muted{font-weight:400}''.searchMatch{outline:2px solid #2563eb;outline-offset:-2px;background:#eff6ff!important}
+</style>
+<style id="modernControlStyle">
+body{background:radial-gradient(circle at 12% 0%,#fff4e8 0,#fffaf6 38%,#f3f4f6 100%);color:#2b211c}
+header{padding:12px 10px 12px 18px;background:linear-gradient(135deg,#7f2d12 0%,#a43a0c 52%,#d95b17 100%);box-shadow:0 8px 26px #6b3b1c2b}
+header>div{min-height:48px}
+header h2{font-size:21px;letter-spacing:-.35px}
+main{max-width:1120px;padding:18px 15px 40px}
+nav{gap:6px;padding:5px;border-radius:18px;background:rgba(255,255,255,.82);backdrop-filter:blur(10px);box-shadow:0 8px 24px #6b3b1c12}
+nav button{border-radius:999px!important;padding:7px 10px!important;font-size:13px!important}
+.card{border-radius:18px;box-shadow:0 10px 28px #6b3b1c10;border:1px solid #eee2d9;background:rgba(255,255,255,.96)}
+.grid>.card,.section>.card{box-shadow:0 8px 22px #6b3b1c0d}
+input,select,textarea{border-radius:14px;background:#fff;border-color:#ded4cd}
+button{border-radius:13px!important;box-shadow:0 5px 14px #6b3b1c16}
+.primary{border-radius:13px!important}
+.language-picker{margin-left:auto;margin-right:-4px}
+.language-main{width:104px;min-width:104px;height:46px;border-radius:999px!important;padding:8px 16px;font-size:16px;background:rgba(255,255,255,.98);border:1px solid #ead8ca;box-shadow:0 7px 20px #3b21141f}
+.language-main:hover{transform:translateY(-1px);filter:none}
+.stat{font-size:29px}
+@media(max-width:700px){header{padding-right:7px}header h2{font-size:19px}.language-main{width:112px;min-width:112px;height:50px}}
+</style>
+<style id="v42CompactStyle">
+button{padding:7px 11px!important;border-radius:9px!important;font-size:14px!important}
+input,select{min-height:36px!important;font-size:14px!important}
+table th,table td{padding:7px 8px!important}
+.card{border-radius:12px}
+.scheduleGroup summary{padding:9px 10px!important;border-radius:10px}
+.trash-fab{padding:8px 13px!important;display:inline-flex;align-items:center;gap:5px;background:#5b3a2a!important;border-radius:12px!important}.cash-fab{margin-left:0;width:44px;height:44px;border-radius:50%!important;padding:0!important;display:flex;align-items:center;justify-content:center;font-size:21px!important;box-shadow:0 3px 12px rgba(0,0,0,.16);margin-top:10px}
+@media(max-width:600px){button{font-size:13px!important;padding:7px 9px!important}table th,table td{padding:6px!important;font-size:13px}.cash-fab{width:42px;height:42px}}
+</style><style id="seasonChristmasStyle">
+/* Temporada navideña inspirada en ilustraciones de tamales navideños: verde, rojo, dorado y detalles festivos. */
+body{background:radial-gradient(circle at 12% 0%,#f2fbf4 0,#fffaf6 38%,#f1f5f1 100%)}
+header{background:linear-gradient(135deg,#14532d 0%,#166534 50%,#7f1d1d 100%);box-shadow:0 8px 26px #14532d33;position:sticky;overflow:hidden}
+header:after{content:"🎄  ✨  ❄️  🫔  ❄️  ✨  🎄";position:absolute;left:50%;top:2px;transform:translateX(-50%);font-size:11px;letter-spacing:2px;opacity:.78;pointer-events:none;white-space:nowrap}
+nav{border-color:#d7e7d9;background:rgba(255,255,255,.9)}
+nav button{background:#166534!important}
+nav button.active,.primary,button.primary{background:linear-gradient(135deg,#166534,#8b1e2d)!important}
+.card{border-color:#dfe9e0}
+.season-reset-btn{width:42px!important;height:42px!important;min-width:42px;padding:0!important;border-radius:50%!important;background:#fff!important;color:#166534!important;border:1px solid #d7e7d9!important;box-shadow:0 4px 12px #14532d18!important;font-size:21px!important;display:flex;align-items:center;justify-content:center}
+.season-reset-btn:hover{background:#f3fbf5!important}
+#seasonResetModal .box{border-top:5px solid #8b1e2d}
+</style></head>
+<body>
+<header><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">🫔 Control de Tamales</h2><div style="display:flex;gap:8px;align-items:center"><span id="cloudUser" style="font-size:12px"></span><button id="logoutBtn" style="display:none;background:#fff;color:#c2410c" onclick="logoutCloud()">Salir</button><div id="languagePicker" class="language-picker"><button type="button" class="language-main" id="languageMain" aria-label="Cambiar idioma" aria-expanded="false">🇪🇸 ES</button></div></div></div></header><main>
+<div class="muted" style="margin-bottom:8px">☁️ Tus cambios se guardan en la nube automáticamente.</div><nav id="nav">
+<button class="active" onclick="show('inicio',this)">Inicio</button><button onclick="show('clientes',this)">Clientes</button>
+<button onclick="show('produccion',this)">Desglose por hora</button><button onclick="show('desglose',this)">Desglose por docena</button><button onclick="show('completados',this)">Clientes despachados</button>
+</nav><div style="display:flex;justify-content:flex-end;margin:-6px 0 12px"><button type="button" id="trashBtn" class="trash-fab" title="Papelera" aria-label="Papelera" onclick="openTrash()">🗑️ <span id="trashBtnLabel">Papelera</span></button></div>
+
+<section id="inicio" class="section active">
+<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><h2>Resumen</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="primary" onclick="openOrder()">＋ Nuevo pedido</button></div></div>
+<div class="card" style="margin-top:8px"><label><b>Buscar cliente</b></label><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="homeSearch" placeholder="Nombre o teléfono" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();searchFromHome();}" style="flex:1;min-width:200px;margin:0"><button type="button" class="primary" onclick="searchFromHome()">Buscar</button></div><div id="homeSearchMsg" class="muted" style="min-height:18px;margin-top:5px"></div></div>
+<div class="grid" style="margin-top:8px"><div class="card"><div class="muted">Pedidos</div><div id="so" class="stat">0</div></div><div class="card"><div class="muted">Tamales</div><div id="st" class="stat">0</div></div><div class="card clickStat" onclick="openStatusList(true)"><div class="muted">Entregados</div><div id="sd" class="stat">0</div></div><div class="card clickStat" onclick="openStatusList(false)"><div class="muted">Pendientes</div><div id="sp" class="stat">0</div></div></div><div id="publicPendingWrap" style="margin-top:8px"></div><div id="publicModificationWrap" style="margin-top:8px"></div>
+</section>
+<section id="clientes" class="section"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><h2 id="clientesTitle">Clientes</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="modifyOrderBtn" onclick="openEditClientFromTable()">✎ Modificar pedido</button><button id="deleteClientBtn" class="primary" onclick="openDeleteClient()">− Eliminar cliente</button></div></div><div id="clients"></div></section>
+<section id="produccion" class="section"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><h2>Desglose por hora</h2></div><div id="prod"></div></section>
+<section id="desglose" class="section"><h2>Desglose por docena</h2><div id="desgloseContent"></div></section>
+<section id="completados" class="section"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap"><div><h2 id="completedTitle">Clientes despachados</h2><div id="completedHelp" class="muted">Clientes que ya pagaron y recibieron su pedido.</div></div><button type="button" class="season-reset-btn" aria-label="Nueva temporada" title="Nueva temporada" onclick="openSeasonReset()">🔁</button></div><div id="completedTable"></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button type="button" class="cash-fab primary" aria-label="Total efectivo" title="Total efectivo" onclick="openCash()">💵</button></div></section>
+
+</main>
+
+<div class="modal" id="orderModal"><div class="box"><div class="head"><h2 id="orderModalTitle">Nuevo pedido</h2><button class="close" onclick="closeOrder()">×</button></div>
+<form onsubmit="saveOrder(event)">
+<label id="orderNameLabel">Nombre *</label><input id="name" required><label id="orderPhoneLabel">Teléfono</label><input id="phone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="14" placeholder="(760) 556-4636">
+<div class="row"><div><label id="orderDateLabel">Fecha *</label><input id="date" type="date" required></div><div>
+<label id="orderScheduleLabel">Horario de entrega *</label>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+<div><span id="orderFromLabel" class="muted">Desde</span><input id="orderStart" type="time" required></div>
+<div><span id="orderToLabel" class="muted">Hasta</span><input id="orderEnd" type="time" required></div>
+</div>
+
+</div></div>
+<div class="grid"><div><label id="orderChickenLabel">Pollo</label><input id="pollo" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label id="orderPorkLabel">Puerco</label><input id="puerco" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label id="orderRajasLabel">Rajas</label><input id="rajas" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label id="orderSpinachLabel">Espinacas</label><input id="espinacas" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label id="orderPineappleLabel">Piña</label><input id="pina" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label id="orderStrawberryLabel">Fresa</label><input id="fresa" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div></div>
+<button id="orderSaveButton" class="primary" style="width:100%">Guardar pedido</button>
+</form></div></div>
+
+<div class="modal" id="duplicateModal"><div class="box" style="max-width:520px"><div class="head"><h2>Cliente ya registrado</h2><button class="close" onclick="closeDuplicate()">×</button></div><div id="duplicateMessage"></div><div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button id="duplicateCancelBtn" onclick="closeDuplicate()">Cancelar</button><button id="duplicateAddBtn" class="primary" onclick="addDuplicateAnyway()">Agregar de todos modos</button></div></div></div>
+
+<div class="modal" id="scheduleModal"><div class="box" style="max-width:400px"><div class="head"><h2 id="schTitle">Horario</h2><button class="close" onclick="closeSchedule()">×</button></div>
+<form onsubmit="saveSchedule(event)"><input type="hidden" id="sid"><label>Desde</label><input id="start" type="time" required><label>Hasta</label><input id="end" type="time" required><button class="primary" style="width:100%">Guardar</button></form></div></div>
+
+<div class="modal" id="searchNotFoundModal"><div class="box" style="max-width:420px"><div class="head"><h2>Cliente no registrado</h2><button class="close" onclick="closeSearchNotFound()">×</button></div><p style="margin:14px 0">El cliente que buscas no está registrado.</p><div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="primary" onclick="closeSearchNotFound()">Aceptar</button></div></div></div>
+
+<div class="modal" id="servedCustomerModal"><div class="box" style="max-width:620px"><div class="head"><h2 id="servedCustomerTitle">Información del cliente</h2><button class="close" type="button" onclick="closeServedCustomer()">×</button></div><div id="servedCustomerInfo"></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="primary" type="button" onclick="closeServedCustomer()" id="servedCustomerCloseBtn">Aceptar</button></div></div></div>
+<div class="modal" id="clientResultModal"><div class="box" style="max-width:650px"><div class="head"><h2 id="clientResultTitle">Cliente encontrado</h2><button class="close" onclick="closeClientResult()">×</button></div><div id="clientResult"></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="primary" onclick="closeClientResult()">Aceptar</button></div></div></div>
+
+<div class="modal" id="editClientPickerModal"><div class="box" style="max-width:520px"><div class="head"><h2 id="editModalTitle">Modificar pedido</h2><button class="close" onclick="closeEditClientPicker()">×</button></div><p class="muted" id="editClientInstruction">Escribe el nombre o número de teléfono del cliente que deseas modificar.</p><input id="editClientSearch" placeholder="Nombre o teléfono" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();findEditClient();}"><button class="primary" id="editClientSearchBtn" style="width:100%" onclick="findEditClient()">Buscar cliente</button><div id="editClientPreview" style="margin-top:14px"></div></div></div>
+
+<div class="modal" id="deliveredEditModal"><div class="box" style="max-width:500px"><div class="head"><h2 id="deliveredEditTitle">Modificar orden</h2><button class="close" type="button" onclick="closeDeliveredEditWarning()">×</button></div><p id="deliveredEditMessage">Este cliente ya no se puede modificar porque su orden ya fue entregada.</p><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button type="button" onclick="closeDeliveredEditWarning()">Cancelar</button><button type="button" class="primary" onclick="continueDeliveredEdit()">Modificar de todos modos</button></div></div></div>
+<div class="modal" id="editReviewModal"><div class="box" style="max-width:700px"><div class="head"><h2 id="editReviewTitle">Revisar modificación</h2><button class="close" type="button" onclick="closeEditReview()">×</button></div><div id="editReviewContent"></div><div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button type="button" onclick="closeEditReview()">Cancelar</button><button type="button" class="primary" onclick="acceptEditReview()">Aceptar</button></div></div></div>
+<div class="modal" id="editOrderModal"><div class="box" style="max-width:520px"><div class="head"><h2 id="editOrderModalTitle">Modificar pedido</h2><button class="close" onclick="closeEditOrder()" aria-label="Cerrar">×</button></div><div id="editClientInfo" class="muted" style="margin-bottom:8px"></div><form onsubmit="saveEditedOrder(event)"><input type="hidden" id="editOrderId"><label id="editScheduleLabel">Horario de entrega</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px"><div><span class="muted" id="editFromLabel">Desde</span><input id="editStart" type="time" required></div><div><span class="muted" id="editToLabel">Hasta</span><input id="editEnd" type="time" required></div></div><div class="grid"><div><label id="editChickenLabel">Pollo</label><input id="edit_pollo" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label id="editPorkLabel">Puerco</label><input id="edit_puerco" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label id="editRajasLabel">Rajas</label><input id="edit_rajas" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label id="editSpinachLabel">Espinacas</label><input id="edit_espinacas" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label id="editPineappleLabel">Piña</label><input id="edit_pina" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div><div><label id="editStrawberryLabel">Fresa</label><input id="edit_fresa" class="qtyInput" type="number" min="0" value="0" onfocus="qtyFocus(this)" onblur="qtyBlur(this)"></div></div><div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button type="button" id="editCancelButton" onclick="closeEditOrder()">Cancelar</button><button id="editAcceptButton" class="primary">Aceptar y actualizar</button></div></form></div></div>
+
+<div class="modal" id="statusListModal"><div class="box" style="max-width:520px"><div class="head"><h2 id="statusListTitle">Entregados</h2><button class="close" onclick="closeStatusList()">×</button></div><div id="statusList"></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="primary" onclick="closeStatusList()">Aceptar</button></div></div></div>
+
+<div class="modal" id="deleteClientModal"><div class="box" style="max-width:520px"><div class="head"><h2 id="deleteClientTitle">Eliminar cliente</h2><button class="close" onclick="closeDeleteClient()">×</button></div><p class="muted" id="deleteClientInstruction">Escribe el nombre del cliente que deseas eliminar.</p><input id="deleteClientName" placeholder="Nombre o teléfono del cliente" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();findDeleteClient();}"><button type="button" class="primary" id="deleteClientSearchBtn" style="width:100%" onclick="findDeleteClient()">Buscar cliente</button><div id="deleteClientPreview" style="margin-top:14px"></div></div></div>
+
+<div class="modal" id="chargeModal"><div class="box" style="max-width:520px"><div class="head"><h2 id="chargeTitle">Cobrar</h2><button class="close" type="button" onclick="closeCharge()">×</button></div><div id="chargeLookupControls"><p class="muted" id="chargeInstruction">Escribe el nombre o teléfono del cliente para buscar su pedido.</p><input id="chargeSearch" placeholder="Nombre o teléfono" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();findChargeCustomer();}"><button type="button" class="primary" id="chargeSearchBtn" style="width:100%" onclick="findChargeCustomer()">Buscar cliente</button></div><div id="chargePreview" style="margin-top:14px"></div></div></div>
+
+<div class="modal" id="modPaymentModal"><div class="box" style="max-width:460px"><div class="head"><h2 id="modPaymentTitle">Cobro adicional</h2><button class="close" type="button" onclick="closeModificationPayment()">×</button></div><p id="modPaymentInfo" class="muted">Esta orden ya fue entregada. La orden modificada tiene una cantidad pendiente.</p><div class="card" style="margin:0"><div id="modPaymentDueLabel" class="muted">Cantidad faltante</div><div id="modPaymentDue" class="stat" style="font-size:28px">$0</div><label id="modReceivedLabel" style="display:block;margin-top:12px">Dinero recibido</label><input id="modAmountReceived" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" oninput="updateModificationChange()"><div id="modChange" class="stat" style="font-size:22px;margin-top:8px"></div></div><button type="button" class="primary" id="modPaymentBtn" style="width:100%;margin-top:10px" onclick="confirmModificationPayment()">Cobrar</button></div></div>
+<div class="modal" id="paymentModal"><div class="box" style="max-width:460px"><div class="head"><h2 id="paymentTitle">Cobrar pedido</h2><button class="close" type="button" onclick="closePayment()">×</button></div><div id="paymentCustomerInfo" class="card" style="margin:0 0 12px"></div><label id="pricePerDozenLabel">Precio por docena</label><input id="pricePerDozen" type="number" min="0" step="0.01" inputmode="decimal" value="38"><button type="button" class="primary" id="applyPriceBtn" style="width:100%;margin-top:4px" onclick="applyChargePrice()">Aplicar</button><div id="paymentBox" style="display:none;margin-top:14px"><div class="card" style="margin:0"><div><b id="paymentTotalLabel">Total</b>: $<span id="paymentTotal">0.00</span></div><label id="receivedLabel" style="display:block;margin-top:12px">Monto recibido</label><input id="amountReceived" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" oninput="updateChange()"><div id="changeResult" class="stat" style="font-size:22px;margin-top:8px"></div></div><button type="button" class="primary" id="confirmPaymentBtn" style="width:100%;margin-top:10px" onclick="confirmCharge()">Confirmar cobro</button></div></div></div>
+
+<div class="modal" id="publicOrdersModal"><div class="box" style="max-width:620px"><div class="head"><h2 id="publicOrdersTitle">Pedidos por confirmar</h2><button class="close" type="button" onclick="closePublicOrders()">×</button></div><div id="publicOrderContent"></div></div></div>
+<div class="modal" id="publicModificationsModal"><div class="box" style="max-width:720px"><div class="head"><h2 id="publicModificationsTitle">Cambios por revisar</h2><button class="close" type="button" onclick="closePublicModifications()">×</button></div><div id="publicModificationContent"></div></div></div>
+
+<div class="modal" id="seasonResetModal"><div class="box" style="max-width:440px"><div class="head"><h2 id="seasonResetTitle">⚠️ Nueva temporada</h2><button class="close" type="button" onclick="closeSeasonReset()">×</button></div><p id="seasonResetText" class="muted">Al confirmar se eliminarán todos los registros del sistema: órdenes, pedidos pendientes, modificaciones, papelera y registros de SMS. Los contadores volverán a cero.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px"><button type="button" onclick="closeSeasonReset()" id="seasonResetCancel">Cancelar</button><button type="button" class="primary" onclick="performSeasonReset()" id="seasonResetConfirm">Confirmar</button></div><div id="seasonResetMsg" class="muted" style="min-height:20px;margin-top:10px;text-align:center"></div></div></div><div class="modal" id="trashModal"><div class="box" style="max-width:720px"><div class="head"><h2 id="trashTitle">🗑️ Papelera</h2><button class="close" type="button" onclick="closeTrash()">×</button></div><p class="muted" id="trashHelp">Aquí se conservan los clientes que eliminaste de las tablas principales.</p><div id="trashList"></div><div id="trashDetail" style="margin-top:12px"></div></div></div>
+<div class="modal show" id="authModal"><div class="box" style="max-width:430px"><div class="head"><h2>☁️ Control de Tamales</h2></div><p class="muted">Inicia sesión para guardar tus pedidos en la nube y usarlos desde otros dispositivos.</p><form onsubmit="authSubmit(event)"><label>Correo electrónico</label><input id="authEmail" type="email" autocomplete="email" required><label>Contraseña</label><input id="authPassword" type="password" minlength="6" autocomplete="current-password" required><div id="authMsg" class="muted" style="min-height:20px"></div><button id="authButton" class="primary" style="width:100%;margin-top:8px">Iniciar sesión</button></form><button id="authToggle" style="width:100%;margin-top:8px;background:#eee;color:#222" onclick="toggleAuthMode()">Crear cuenta nueva</button>
+<button type="button" id="forgotPasswordBtn" style="width:100%;margin-top:8px;background:transparent;color:#c2410c;box-shadow:none" onclick="forgotPassword()">¿Olvidaste tu contraseña?</button></div></div>
+<div class="modal" id="resetModal"><div class="box" style="max-width:430px"><div class="head"><h2>🔐 Nueva contraseña</h2></div><p class="muted">Escribe una nueva contraseña para tu cuenta.</p><form onsubmit="saveNewPassword(event)"><label>Nueva contraseña</label><input id="newPassword" type="password" minlength="6" autocomplete="new-password" required><label>Repite la contraseña</label><input id="newPassword2" type="password" minlength="6" autocomplete="new-password" required><div id="resetMsg" class="muted" style="min-height:20px"></div><button class="primary" style="width:100%;margin-top:8px">Guardar nueva contraseña</button></form></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://yuddjqscdzbkujmdteyz.supabase.co";
+const SUPABASE_KEY="sb_publishable_iqoPVJZNyLvMlz2iD8jknw_Kb8y2N_N";
+const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+let currentUser=null,cloudReady=false,cloudChannel=null;
+
+const fs=['pollo','puerco','rajas','espinacas','pina','fresa'], names={pollo:'Pollo',puerco:'Puerco',rajas:'Rajas',espinacas:'Espinacas',pina:'Piña',fresa:'Fresa'};
+let orders=JSON.parse(localStorage.getItem('tamales_orders')||'[]');
+let schedules=JSON.parse(localStorage.getItem('tamales_schedules')||'null')||[];
+function save(){localStorage.setItem('tamales_orders',JSON.stringify(orders));localStorage.setItem('tamales_schedules',JSON.stringify(schedules));cloudSave();}
+async function cloudSave(){if(!cloudReady||!currentUser)return;const payload={user_id:currentUser.id,orders,schedules,updated_at:new Date().toISOString()};const {error}=await supabaseClient.from('tamales_data').upsert(payload,{onConflict:'user_id'});if(error)console.error('Error al sincronizar:',error);}
+
+const el=id=>document.getElementById(id);
+const fmt=t=>{let [h,m]=t.split(':').map(Number);return (h%12||12)+':'+String(m).padStart(2,'0')+' '+(h>=12?'PM':'AM');};
+const total=o=>fs.reduce((a,f)=>a+(Number(o[f])||0),0);
+let authMode='login';
+function toggleAuthMode(){authMode=authMode==='login'?'signup':'login';el('authButton').textContent=authMode==='login'?'Iniciar sesión':'Crear cuenta';el('authToggle').textContent=authMode==='login'?'Crear cuenta nueva':'Ya tengo una cuenta';el('authMsg').textContent='';}
+async function authSubmit(e){
+  e.preventDefault();
+  const email=el('authEmail').value.trim(),password=el('authPassword').value;
+  if(!email||!password)return;
+  el('authMsg').textContent='Conectando…';
+  try{
+    const result=await Promise.race([
+      authMode==='login'
+        ? supabaseClient.auth.signInWithPassword({email,password})
+        : supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:PUBLIC_APP_URL}}),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('Tiempo de espera agotado al conectar con la cuenta.')),15000))
+    ]);
+    if(result.error){el('authMsg').textContent=result.error.message;return}
+    if(authMode==='signup'&&!result.data.session){el('authMsg').textContent='Cuenta creada. Revisa tu correo para confirmar la cuenta y después inicia sesión.';return}
+    el('authMsg').textContent='';
+    if(result.data.session){
+      // Entrar inmediatamente con los datos locales; la nube se sincroniza en segundo plano.
+      await startCloudSession(result.data.session.user);
+    }
+  }catch(error){
+    console.error('Error de autenticación:',error);
+    el('authMsg').textContent=error.message||'No se pudo iniciar la sesión.';
+  }
+}
+const PUBLIC_APP_URL='https://control-tamales.netlify.app';
+async function forgotPassword(){const email=el('authEmail').value.trim();if(!email){el('authMsg').textContent='Escribe primero tu correo electrónico.';el('authEmail').focus();return}el('authMsg').textContent='Enviando correo de recuperación…';const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:PUBLIC_APP_URL});el('authMsg').textContent=error?error.message:'Te enviamos un correo para restablecer tu contraseña. Revisa también la carpeta de spam.';}
+async function saveNewPassword(e){e.preventDefault();const p1=el('newPassword').value,p2=el('newPassword2').value;if(p1.length<6){el('resetMsg').textContent='La contraseña debe tener al menos 6 caracteres.';return}if(p1!==p2){el('resetMsg').textContent='Las contraseñas no coinciden.';return}el('resetMsg').textContent='Guardando…';const {error}=await supabaseClient.auth.updateUser({password:p1});if(error){el('resetMsg').textContent=error.message;return}el('resetMsg').textContent='Contraseña actualizada ✓';setTimeout(async()=>{await supabaseClient.auth.signOut();el('resetModal').classList.remove('show');el('authModal').classList.add('show');el('authMsg').textContent='Contraseña actualizada. Ahora inicia sesión con tu nueva contraseña.';el('newPassword').value='';el('newPassword2').value='';},700);}
+
+async function startCloudSession(user){
+  if(!user)return;
+  currentUser=user;
+  cloudReady=true;
+  // Mostrar la aplicación inmediatamente. Nunca hacemos depender la entrada de una consulta de nube.
+  el('authModal').classList.remove('show');
+  el('logoutBtn').style.display='inline-block';
+  el('cloudUser').textContent='☁️ '+(user.email||'Cuenta');
+  orders=JSON.parse(localStorage.getItem('tamales_orders')||'[]');
+  schedules=JSON.parse(localStorage.getItem('tamales_schedules')||'null')||[];
+  render();
+
+  try{
+    const result=await Promise.race([
+      supabaseClient.from('tamales_data').select('orders,schedules,updated_at').eq('user_id',user.id).maybeSingle(),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('La nube no respondió a tiempo.')),10000))
+    ]);
+    const {data,error}=result;
+    if(error){
+      console.error('Error de nube:',error);
+      el('cloudUser').textContent='☁️ Local / nube pendiente';
+      return;
+    }
+    if(data){
+      const cloudOrders=Array.isArray(data.orders)?data.orders:[];
+      const localOrders=JSON.parse(localStorage.getItem('tamales_orders')||'[]');
+      const cloudSchedules=Array.isArray(data.schedules)?data.schedules:[];
+      const localSchedules=JSON.parse(localStorage.getItem('tamales_schedules')||'null')||[];
+      // Si la nube está recién creada y aún está vacía, no borres los pedidos locales.
+      // Primero subimos los datos locales y después seguimos trabajando con ellos.
+      if(cloudOrders.length===0 && localOrders.length>0){
+        orders=localOrders;
+        schedules=localSchedules.length?localSchedules:cloudSchedules;
+        await cloudSave();
+      }else{
+        orders=cloudOrders;
+        schedules=cloudSchedules;
+        localStorage.setItem('tamales_orders',JSON.stringify(orders));
+        localStorage.setItem('tamales_schedules',JSON.stringify(schedules));
+      }
+      render();
+    }else{
+      await cloudSave();
+    }
+    el('cloudUser').textContent='☁️ '+(user.email||'Cuenta');
+    setupRealtime(user.id);
+    loadPublicPendingOrders();
+  }catch(error){
+    console.error('Error cargando nube:',error);
+    el('cloudUser').textContent='☁️ Local / nube pendiente';
+  }
+}
+function setupRealtime(uid){if(cloudChannel)supabaseClient.removeChannel(cloudChannel);cloudChannel=supabaseClient.channel('tamales-cloud-sync').on('postgres_changes',{event:'UPDATE',schema:'public',table:'tamales_data',filter:'user_id=eq.'+uid},payload=>{if(!cloudReady)return;const incoming=payload.new;if(!incoming)return;orders=Array.isArray(incoming.orders)?incoming.orders:[];schedules=Array.isArray(incoming.schedules)?incoming.schedules:[];localStorage.setItem('tamales_orders',JSON.stringify(orders));localStorage.setItem('tamales_schedules',JSON.stringify(schedules));render()}).on('postgres_changes',{event:'*',schema:'public',table:'public_order_requests',filter:'owner_user_id=eq.'+uid},()=>{loadPublicPendingOrders()}).on('postgres_changes',{event:'*',schema:'public',table:'public_order_modification_requests',filter:'owner_user_id=eq.'+uid},()=>{loadPublicPendingOrders()}).subscribe();}
+async function logoutCloud(){cloudReady=false;currentUser=null;if(cloudChannel){await supabaseClient.removeChannel(cloudChannel);cloudChannel=null}await supabaseClient.auth.signOut();el('logoutBtn').style.display='none';el('cloudUser').textContent='';el('authEmail').value='';el('authPassword').value='';el('authMsg').textContent='';el('authModal').classList.add('show');}
+async function initCloud(){
+  let recoveryMode=false;
+  let recoveryTimer=null;
+  const showReset=()=>{
+    recoveryMode=true;
+    if(recoveryTimer){clearTimeout(recoveryTimer);recoveryTimer=null}
+    el('authModal').classList.remove('show');
+    el('resetModal').classList.add('show');
+    setTimeout(()=>el('newPassword').focus(),100);
+  };
+  supabaseClient.auth.onAuthStateChange((event,session)=>{
+    if(event==='PASSWORD_RECOVERY'){showReset();return;}
+    if(event==='SIGNED_IN'&&session&&!cloudReady&&!recoveryMode){startCloudSession(session.user);}
+    if(event==='SIGNED_OUT'){
+      cloudReady=false;currentUser=null;
+      if(!recoveryMode)el('authModal').classList.add('show');
+    }
+  });
+  const {data,error}=await supabaseClient.auth.getSession();
+  if(error){el('authMsg').textContent='No se pudo iniciar la sesión.';el('authModal').classList.add('show');return;}
+  const hash=window.location.hash||'';
+  const isRecoveryUrl=/type=recovery/i.test(hash)||/[?&]code=/i.test(window.location.search||'');
+  if(isRecoveryUrl){
+    recoveryMode=true;
+    recoveryTimer=setTimeout(()=>{
+      if(!cloudReady){el('authModal').classList.remove('show');el('resetModal').classList.add('show');el('resetMsg').textContent='Preparando recuperación de contraseña…';setTimeout(()=>el('newPassword').focus(),100);}
+    },1200);
+    return;
+  }
+  if(data.session&&!recoveryMode&&!cloudReady)await startCloudSession(data.session.user);
+  else if(!data.session&&!recoveryMode)el('authModal').classList.add('show');
+}
+
+function show(id,b){document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));el(id).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));if(b)b.classList.add('active');render();}
+function qtyFocus(input){if(input.value==='0')input.value='';setTimeout(()=>input.select(),0);}
+function qtyBlur(input){if(input.value===''||Number(input.value)<0)input.value='0';}
+function openOrder(){el('orderModal').classList.add('show');el('orderModal').querySelector('form').reset();el('date').value=new Date().toISOString().slice(0,10);el('orderStart').value='12:00';el('orderEnd').value='14:00';fs.forEach(f=>el(f).value=0);}
+function closeOrder(){el('orderModal').classList.remove('show');}
+function saveOrder(e){
+ e.preventDefault();
+ const s0=el('orderStart').value,s1=el('orderEnd').value;
+ if(!s0||!s1)return alert(langIsEnglish()?'Enter the start and end times.':'Escribe la hora desde y hasta.');
+ if(s0>=s1)return alert(langIsEnglish()?'The end time must be after the start time.':'La hora final debe ser después de la inicial.');
+ const o={id:Date.now(),name:el('name').value.trim(),phone:el('phone').value.trim(),date:el('date').value,scheduleId:'custom_'+s0+'_'+s1,scheduleLabel:fmt(s0)+' – '+fmt(s1),start:s0,end:s1,notes:'',delivered:false,paid:false};
+ fs.forEach(f=>o[f]=Number(el(f).value)||0);
+ if(!o.name)return alert('Escribe el nombre del cliente.');
+ if(!o.date)return alert('Selecciona la fecha.');
+ const form=el('orderModal').querySelector('form');
+ const editingId=form.dataset.editingId;
+ if(editingId){const idx=orders.findIndex(x=>String(x.id)===String(editingId));if(idx>=0){o.id=orders[idx].id;o.delivered=!!orders[idx].delivered;o.paid=!!orders[idx].paid;orders[idx]=o;save();delete form.dataset.editingId;const btn=form.querySelector('button.primary');if(btn)btn.textContent='Guardar pedido';closeOrder();render();alert('Información del cliente actualizada ✓');return;}}
+ const normName=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,' ');
+ const normPhone=v=>String(v||'').replace(/\D/g,'');
+ if(!total(o))return alert(langIsEnglish()?'Add at least one tamale.':'Agrega al menos un tamal.');
+ // Verificar coincidencias contra TODOS los pedidos registrados.
+ // El nombre se compara aunque cambien mayúsculas, acentos o espacios;
+ // el teléfono se compara ignorando guiones, espacios y paréntesis.
+ const newName=normName(o.name), newPhone=normPhone(o.phone);
+ // Para el nombre se compara SOLO la primera palabra (los caracteres antes del primer espacio).
+ // Ejemplo: "Juan Pérez", "Juan López" y "Juan García" se consideran coincidencias por "Juan".
+ const firstName=v=>normName(v).split(' ')[0]||'';
+ const newFirstName=firstName(o.name);
+ const duplicateMatches=orders.filter(x=>{
+   const oldFirstName=firstName(x.name), oldPhone=normPhone(x.phone);
+   const sameFirstName=!!newFirstName && !!oldFirstName && oldFirstName===newFirstName;
+   const samePhone=!!newPhone && !!oldPhone && oldPhone===newPhone;
+   return sameFirstName || samePhone;
+ });
+ if(duplicateMatches.length){
+   window.pendingDuplicateOrder=o;window.duplicateMatches=duplicateMatches;
+   const en=langIsEnglish();
+   const reasonsText=duplicateMatches.map(x=>{
+     const r=[];
+     if(firstName(x.name)===newFirstName)r.push(en?'matches by name':'coincide por nombre');
+     if(newPhone && normPhone(x.phone)===newPhone)r.push(en?'matches by phone':'coincide por teléfono');
+     return '<li style="margin-bottom:8px"><b>'+x.name+'</b>'+(x.phone?' — '+x.phone:' — '+(en?'No phone':'Sin teléfono'))+' <span class="muted">('+r.join(en?' and ':' y ')+')</span></li>';
+   }).join('');
+   el('duplicateMessage').innerHTML=en?'<p><b>One or more customers are already registered with that name or phone number.</b></p><p>Customers found:</p><ul>'+reasonsText+'</ul><p>Do you want to add this order anyway?</p>':'<p><b>Existe uno o más clientes registrados con ese nombre o número de teléfono.</b></p><p>Clientes encontrados:</p><ul>'+reasonsText+'</ul><p>¿Deseas agregar este pedido de todos modos?</p>'; el('duplicateCancelBtn').textContent=en?'Cancel':'Cancelar'; el('duplicateAddBtn').textContent=en?'Add anyway':'Agregar de todos modos';
+   el('duplicateModal').classList.add('show');return;
+ }
+ orders.push(o);save();closeOrder();render();alert(langIsEnglish()?'Order and customer saved ✓':'Pedido y cliente guardados ✓');
+}
+function closeDuplicate(){el('duplicateModal').classList.remove('show');window.pendingDuplicateOrder=null;window.duplicateMatches=null;}
+function addDuplicateAnyway(){const o=window.pendingDuplicateOrder;if(!o)return;orders.push(o);save();closeDuplicate();closeOrder();render();alert(langIsEnglish()?'Order and customer saved ✓':'Pedido y cliente guardados ✓');}
+function toggle(id){const o=orders.find(x=>String(x.id)===String(id));if(!o)return;o.delivered=!o.delivered;save();render();}
+function parseSchedule(o){
+ let start=(o.start||'').trim(), end=(o.end||'').trim(), label=(o.scheduleLabel||'').trim();
+ const to24=(h,m,ap)=>{h=Number(h);m=String(m).padStart(2,'0');ap=ap.toUpperCase();if(ap==='PM'&&h!==12)h+=12;if(ap==='AM'&&h===12)h=0;return String(h).padStart(2,'0')+':'+m};
+ const norm=t=>/^\d{1,2}:\d{2}$/.test(t)?t.split(':').map((x,i)=>i===0?String(Number(x)).padStart(2,'0'):x).join(':'):'';
+ start=norm(start); end=norm(end);
+ if(!start||!end){const m=label.match(/(\d{1,2}):(\d{2})\s*(AM|PM)\s*[–-]\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);if(m){start=to24(m[1],m[2],m[3]);end=to24(m[4],m[5],m[6]);}}
+ return {start,end,label:start&&end?fmt(start)+' – '+fmt(end):(label||'Sin horario')};
+}
+function clientGroups(){
+ const m={};orders.forEach(o=>{const key=(o.phone||o.name).trim().toLowerCase();if(!m[key])m[key]={key,name:o.name,phone:o.phone,orders:[]};m[key].orders.push(o);});
+ const mins=t=>{if(!t)return 999999;const [h,mi]=t.split(':').map(Number);return h*60+mi};
+ return Object.values(m).sort((a,b)=>{const ta=Math.min(...a.orders.map(o=>mins(parseSchedule(o).start)),999999),tb=Math.min(...b.orders.map(o=>mins(parseSchedule(o).start)),999999);return ta-tb||a.name.localeCompare(b.name)});
+}
+function clientSums(c){const sums={pollo:0,puerco:0,rajas:0,espinacas:0,pina:0,fresa:0};c.orders.forEach(o=>fs.forEach(f=>sums[f]+=Number(o[f])||0));return sums;}
+function openDeleteClient(){el('deleteClientName').value='';el('deleteClientPreview').innerHTML='';el('deleteClientModal').classList.add('show');setTimeout(()=>el('deleteClientName').focus(),50);}
+function closeDeleteClient(){el('deleteClientModal').classList.remove('show');}
+function findDeleteClient(){
+ const q=el('deleteClientName').value.trim().toLowerCase();
+ if(!q){showDeleteMessage(langIsEnglish()?'Enter the customer name or phone number.':'Escribe el nombre o número de teléfono del cliente.');return;}
+ const matches=clientGroups().filter(c=>(c.name+' '+c.phone).toLowerCase().includes(q));
+ if(!matches.length){el('deleteClientPreview').innerHTML='<p class="muted">'+(langIsEnglish()?'No customer was found with that name or phone number.':'No encontré un cliente con ese nombre o número de teléfono.')+'</p>';return;}
+ if(matches.length>1){
+   const en=langIsEnglish(); const found=en?'I found several customers:':'Encontré varios clientes:'; const choose=en?'Select one or more to delete.':'Selecciona uno o más para eliminar.'; const noPhone=en?'No phone':'Sin teléfono'; const cont=en?'Continue':'Continuar';
+   el('deleteClientPreview').innerHTML='<p><b>'+found+'</b> '+choose+'</p><div id="deleteMatchesList" style="display:grid;gap:8px">'+matches.map((c,i)=>'<label class="card" style="margin:0;padding:11px;display:flex;align-items:center;gap:10px;cursor:pointer"><input class="deleteSelect" type="checkbox" value="'+encodeURIComponent(c.key)+'" style="width:22px;height:22px;margin:0"><span><b>'+(i+1)+'. '+c.name+'</b>'+(c.phone?' — '+c.phone:' — '+noPhone)+'</span></label>').join('')+'</div><div id="deleteSelectedInfo" style="margin-top:12px"></div><button class="primary" style="width:100%;margin-top:12px" onclick="confirmSelectedDeletes()">'+cont+'</button>';
+   document.querySelectorAll('#deleteMatchesList .deleteSelect').forEach(cb=>cb.addEventListener('change',renderDeleteSelectedInfo));
+   return;
+ }
+ showDeletePreview(matches[0].key);
+}
+function renderDeleteSelectedInfo(){
+ const keys=[...document.querySelectorAll('#deleteClientPreview .deleteSelect:checked')].map(x=>decodeURIComponent(x.value));
+ const box=el('deleteSelectedInfo'); if(!box)return;
+ if(!keys.length){box.innerHTML='';return;}
+ const selected=clientGroups().filter(c=>keys.includes(c.key));
+  const en=langIsEnglish();
+ const L=en?{info:'Customer information',name:'Name:',phone:'Phone:',warn:'⚠ Deleting these customers will also delete all of their orders.'}:{info:'Datos del cliente',name:'Nombre:',phone:'Teléfono:',warn:'⚠ Al eliminar estos clientes también se eliminarán todos sus pedidos.'};
+ const rows=selected.map(c=>'<p style="margin:7px 0"><b>'+L.name+'</b> '+c.name+' &nbsp; <b>'+L.phone+'</b> '+(c.phone||'—')+'</p>').join('');
+ box.innerHTML='<div class="card" style="margin:10px 0 0"><h3 style="margin-top:0">'+L.info+'</h3>'+rows+'<p style="color:#b91c1c;margin-bottom:0"><b>'+L.warn+'</b></p></div>';
+}
+function showDeleteMessage(msg){el('deleteClientPreview').innerHTML='<p class="muted">'+msg+'</p>';}
+function showDeletePreview(inputKey){
+ const key=decodeURIComponent(String(inputKey||''));
+ const c=clientGroups().find(x=>x.key===key) || clientGroups().find(x=>encodeURIComponent(x.key)===String(inputKey||''));
+ if(!c){showDeleteMessage(langIsEnglish()?'Customer could not be loaded. Please search again.':'No se pudo cargar el cliente. Vuelve a buscarlo.');return;}
+ const groups=clientGroups();
+ const num=groups.findIndex(x=>x.key===c.key)+1;
+ const sums=clientSums(c);
+ const ct=fs.reduce((a,f)=>a+(Number(sums[f])||0),0);
+ const en=langIsEnglish();
+ const L=en?{info:'Customer information',num:'#Customer:',name:'Customer:',phone:'Phone:',orders:'Registered orders:',chicken:'Chicken',pork:'Pork',rajas:'Rajas',spinach:'Spinach',pineapple:'Pineapple',strawberry:'Strawberry',total:'Total tamales:',warn:'⚠ Deleting this customer will also delete all of their orders.',cancel:'Cancel',del:'Delete permanently'}:{info:'Datos del cliente',num:'N.º de cliente:',name:'Cliente:',phone:'Teléfono:',orders:'Pedidos registrados:',chicken:'Pollo',pork:'Puerco',rajas:'Rajas',spinach:'Espinacas',pineapple:'Piña',strawberry:'Fresa',total:'Total de tamales:',warn:'⚠ Al eliminarlo también se eliminarán todos sus pedidos.',cancel:'Cancelar',del:'Eliminar definitivamente'};
+ el('deleteClientPreview').innerHTML='<div class="card"><h3 style="margin-top:0">'+L.info+'</h3><p><b>'+L.num+'</b> '+num+'</p><p><b>'+L.name+'</b> '+c.name+'</p><p><b>'+L.phone+'</b> '+(c.phone||'—')+'</p><p><b>'+L.orders+'</b> '+c.orders.length+'</p><p><b>'+L.chicken+':</b> '+sums.pollo+' &nbsp; <b>'+L.pork+':</b> '+sums.puerco+' &nbsp; <b>'+L.rajas+':</b> '+sums.rajas+' &nbsp; <b>'+L.spinach+':</b> '+sums.espinacas+' &nbsp; <b>'+L.pineapple+':</b> '+sums.pina+' &nbsp; <b>'+L.strawberry+':</b> '+sums.fresa+'</p><p><b>'+L.total+'</b> '+ct+'</p><p style="color:#b91c1c"><b>'+L.warn+'</b></p><div style="display:flex;gap:8px;justify-content:flex-end"><button onclick="closeDeleteClient()">'+L.cancel+'</button><button class="primary" onclick="confirmDeleteClient(\''+encodeURIComponent(key)+'\')">'+L.del+'</button></div></div>';
+}
+function confirmSelectedDeletes(){
+ const keys=[...document.querySelectorAll('#deleteClientPreview .deleteSelect:checked')].map(x=>decodeURIComponent(x.value));
+ if(!keys.length){showDeleteMessage(langIsEnglish()?'Select at least one customer.':'Selecciona al menos un cliente.');return;}
+ const selected=clientGroups().filter(c=>keys.includes(c.key));
+ const en=langIsEnglish(); const names=selected.map(c=>c.name).join(', ');
+ el('deleteClientPreview').innerHTML='<div class="card"><h3 style="margin-top:0">'+(en?'Confirm deletion':'Confirmar eliminación')+'</h3><p><b>'+(en?'Customers selected:':'Clientes seleccionados:')+'</b> '+names+'</p><p style="color:#b91c1c"><b>⚠ '+(en?'Deleting these customers will also delete all of their orders.':'Al eliminar estos clientes también se eliminarán todos sus pedidos.')+'</b></p><div style="display:flex;gap:8px;justify-content:flex-end"><button onclick="findDeleteClient()">'+(en?'Back':'Regresar')+'</button><button class="primary" onclick="deleteSelectedClientsNow()">'+(en?'Delete permanently':'Eliminar definitivamente')+'</button></div></div>';
+ window.pendingDeleteKeys=keys;
+}
+function deleteSelectedClientsNow(){
+ const keys=window.pendingDeleteKeys||[]; if(!keys.length)return;
+ orders=orders.filter(o=>!keys.includes((o.phone||o.name).trim().toLowerCase()));save();closeDeleteClient();render();alert(langIsEnglish()?'Customer(s) deleted ✓':'Cliente(s) eliminado(s) ✓');window.pendingDeleteKeys=[];
+}
+function confirmDeleteClient(encodedKey){
+ const key=decodeURIComponent(String(encodedKey||''));
+ const c=clientGroups().find(x=>x.key===key);
+ if(!c)return;
+ const en=langIsEnglish();
+ const back= en ? 'Back' : 'Regresar';
+ const del= en ? 'Delete permanently' : 'Eliminar definitivamente';
+ const title= en ? 'Confirm deletion' : 'Confirmar eliminación';
+ const customer= en ? 'Customer:' : 'Cliente:';
+ const phone= en ? 'Phone:' : 'Teléfono:';
+ const warning= en ? 'Deleting this customer will also delete all of their orders.' : 'Al eliminar este cliente también se eliminarán todos sus pedidos.';
+ const encoded=encodeURIComponent(key);
+ el('deleteClientPreview').innerHTML = '<div class="card"><h3 style="margin-top:0">'+title+'</h3><p><b>'+customer+'</b> '+c.name+'</p><p><b>'+phone+'</b> '+(c.phone||'—')+'</p><p style="color:#b91c1c"><b>⚠ '+warning+'</b></p><div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" id="deleteBackBtn">'+back+'</button><button type="button" class="primary" id="deleteFinalBtn">'+del+'</button></div></div>';
+ el('deleteBackBtn').onclick=function(){showDeletePreview(encoded);};
+ el('deleteFinalBtn').onclick=function(){deleteOneClientNow(encoded);};
+}
+function deleteOneClientNow(encodedKey){
+ const key=decodeURIComponent(String(encodedKey||''));
+ const c=clientGroups().find(x=>x.key===key);
+ if(!c)return;
+ orders=orders.filter(o=>(o.phone||o.name).trim().toLowerCase()!==key);
+ save();closeDeleteClient();render();alert(langIsEnglish()?'Customer deleted ✓':'Cliente eliminado ✓');
+}
+function renderCompleted(){
+ const host=el('completedTable'); if(!host)return;
+ const en=langIsEnglish();
+ el('completedTitle').textContent=en?'Served customers':'Clientes despachados';
+ el('completedHelp').textContent=en?'Customers who have already paid and received their order.':'Clientes que ya pagaron y recibieron su pedido.';
+ const cc=clientGroups().filter(c=>c.orders.length>0&&c.orders.every(o=>o.paid===true)&&c.orders.every(o=>o.delivered===true));
+ if(!cc.length){host.innerHTML='<p class="muted">'+(en?'No served customers yet.':'Todavía no hay clientes despachados.')+'</p>';return;}
+ let h='<div class="card" style="overflow:auto"><table><tr><th>'+(en?'#Customer':'N.º cliente')+'</th><th>'+(en?'Name':'Nombre')+'</th><th>'+(en?'Phone':'Teléfono')+'</th><th>'+(en?'Schedule':'Horario')+'</th><th>'+(en?'Total tamales':'Total tamales')+'</th><th>'+(en?'Paid':'Pagado')+'</th><th>'+(en?'Delivered':'Entregado')+'</th><th>'+(en?'Amount paid':'Cantidad pagada')+'</th></tr>';
+ cc.forEach(c=>{
+   const num=clientGroups().findIndex(x=>x.key===c.key)+1;
+   const hs=[...new Set(c.orders.map(o=>parseSchedule(o).label))].join('<br>');
+   const q=c.orders.reduce((a,o)=>a+total(o),0);
+   const paidAmount=c.orders.reduce((a,o)=>a+(Number(o.paymentTotal)||0),0);
+   h+='<tr class="clientRow" data-client-key="'+encodeURIComponent(c.key)+'"><td>'+num+'</td><td><b>'+c.name+'</b></td><td>'+c.phone+'</td><td>'+hs+'</td><td><b>'+q+'</b></td><td style="text-align:center">✓</td><td style="text-align:center">✓</td><td>$'+money(paidAmount)+'</td></tr>';
+ });
+ h+='</table></div>';
+ host.innerHTML=h;
+ bindCompletedRowClicks();
+}
+function bindCompletedRowClicks(){
+ document.querySelectorAll('#completedTable .clientRow').forEach(row=>{
+   row.addEventListener('click',()=>{
+     const key=decodeURIComponent(row.dataset.clientKey||'');
+     showServedCustomer(key);
+   });
+ });
+}
+function searchCompletedCustomer(){
+ const input=el('completedSearch'),msg=el('completedSearchMsg');
+ const q=(input.value||'').trim().toLowerCase();
+ msg.textContent='';
+ document.querySelectorAll('#completedTable .clientRow').forEach(row=>row.classList.remove('searchMatch'));
+ if(!q){msg.textContent=langIsEnglish()?'Enter a name or phone number.':'Escribe un nombre o número de teléfono.';input.focus();return;}
+ const normPhone=v=>String(v||'').replace(/\D/g,'');
+ const cc=clientGroups().filter(c=>c.orders.length>0&&c.orders.every(o=>o.paid===true)&&c.orders.every(o=>o.delivered===true));
+ const digits=normPhone(q);
+ const matches=cc.filter(c=>{
+   const name=String(c.name||'').toLowerCase();
+   const phone=normPhone(c.phone);
+   return name.includes(q)||(digits&&phone.includes(digits));
+ });
+ input.value='';
+ if(!matches.length){msg.textContent=langIsEnglish()?'No served customer was found.':'No encontré un cliente despachado.';return;}
+ if(matches.length===1){showServedCustomer(matches[0].key);return;}
+ const keys=new Set(matches.map(c=>c.key));
+ document.querySelectorAll('#completedTable .clientRow').forEach(row=>{
+   const key=decodeURIComponent(row.dataset.clientKey||'');
+   if(keys.has(key))row.classList.add('searchMatch');
+ });
+ msg.textContent=langIsEnglish()?'Several served customers were found. The matching customers are highlighted below.':'Encontré varios clientes despachados. Los clientes encontrados están resaltados abajo.';
+}
+function closeServedCustomer(){el('servedCustomerModal').classList.remove('show');}
+function showServedCustomer(key){
+ const c=findClientByKey(key); if(!c)return;
+ const served=c.orders.length>0&&c.orders.every(o=>o.paid===true)&&c.orders.every(o=>o.delivered===true); if(!served)return;
+ const en=langIsEnglish();
+ const o=[...c.orders].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||Number(b.id)-Number(a.id))[0];
+ if(!o)return;
+ const sums=clientSums(c),ct=fs.reduce((a,f)=>a+sums[f],0);
+ const schedule=[...new Set(c.orders.map(x=>parseSchedule(x).label))].join('<br>');
+ const paid=c.orders.reduce((a,x)=>a+(Number(x.paymentTotal)||0),0);
+ const date=o.date||'—';
+ const labels=en?{num:'#Customer',name:'Name',phone:'Phone',date:'Date',schedule:'Schedule',qty:'Tamale quantity',total:'Total tamales',paid:'Amount paid',status:'Status',delivered:'Delivered',yes:'Yes'}:{num:'N.º de cliente',name:'Nombre',phone:'Teléfono',date:'Fecha',schedule:'Horario',qty:'Cantidad de tamales',total:'Total de tamales',paid:'Cantidad pagada',status:'Pagado',delivered:'Entregado',yes:'Sí'};
+ const flavorNames=en?{pollo:'Chicken',puerco:'Pork',rajas:'Rajas',espinacas:'Spinach',pina:'Pineapple',fresa:'Strawberry'}:names;
+ let rows='';
+ fs.forEach(f=>{rows+='<tr><th>'+flavorNames[f]+'</th><td>'+sums[f]+'</td></tr>';});
+ el('servedCustomerTitle').textContent=en?'Served customer information':'Información del cliente despachado';
+ el('servedCustomerCloseBtn').textContent=en?'Close':'Aceptar';
+ el('servedCustomerInfo').innerHTML='<div class="card" style="margin:0"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin-bottom:12px"><div><b>'+labels.num+':</b> '+(clientGroups().findIndex(x=>x.key===c.key)+1)+'</div><div><b>'+labels.name+':</b> '+c.name+'</div><div><b>'+labels.phone+':</b> '+(c.phone||'—')+'</div><div><b>'+labels.date+':</b> '+date+'</div><div><b>'+labels.schedule+':</b> '+schedule+'</div></div><div><b>'+labels.qty+'</b></div><table style="margin-top:6px">'+rows+'<tr><th>'+labels.total+'</th><td><b>'+ct+'</b></td></tr><tr><th>'+labels.paid+'</th><td><b>$'+money(paid)+'</b></td></tr><tr><th>'+labels.status+'</th><td>✓ '+labels.yes+'</td></tr><tr><th>'+labels.delivered+'</th><td>✓ '+labels.yes+'</td></tr></table></div>';
+ el('servedCustomerModal').classList.add('show');
+}
+function renderClients(){
+ const cc=clientGroups().filter(c=>!(c.orders.length>0&&c.orders.every(o=>o.paid===true)&&c.orders.every(o=>o.delivered===true)));
+ const host=el('clients');
+ if(!cc.length){host.innerHTML='<p class="muted">'+(langIsEnglish()?'There are no customers saved yet.':'Todavía no hay clientes guardados.')+'</p>';return;}
+ const groups={};
+ cc.forEach(c=>{
+   const o=c.orders.slice().sort((a,b)=>parseSchedule(a).start.localeCompare(parseSchedule(b).start))[0];
+   const sc=parseSchedule(o||{});
+   const key=(sc.start||'99:99')+'|'+(sc.end||'99:99');
+   if(!groups[key])groups[key]={label:sc.label||'Sin horario',start:sc.start||'99:99',clients:[]};
+   groups[key].clients.push(c);
+ });
+ const ordered=Object.values(groups).sort((a,b)=>a.start.localeCompare(b.start));
+ let html='';
+ ordered.forEach((g,gi)=>{
+   const tamales=g.clients.reduce((sum,c)=>sum+total(c.orders.reduce((acc,o)=>{const x={};fs.forEach(f=>x[f]=(Number(acc[f])||0)+(Number(o[f])||0));return x;},{})),0);
+   html+='<details class="scheduleGroup" '+(gi===0?'open':'')+'><summary><b>'+g.label+'</b><span class="muted"> · '+g.clients.length+' '+(g.clients.length===1?'cliente':'clientes')+' · '+tamales+' tamales</span></summary>';
+   html+='<div class="card" style="overflow:auto;margin-top:8px"><table><tr><th>N.º cliente</th><th>Cliente</th><th>Teléfono</th><th>Horario</th><th>Pollo</th><th>Puerco</th><th>Rajas</th><th>Espinacas</th><th>Piña</th><th>Fresa</th><th>Total tamales</th></tr>';
+   g.clients.forEach(c=>{
+     const sums=clientSums(c),ct=fs.reduce((a,f)=>a+sums[f],0),num=cc.findIndex(x=>x.key===c.key)+1,hs=[...new Set(c.orders.map(o=>parseSchedule(o).label))].join('<br>'),allDelivered=c.orders.length>0&&c.orders.every(o=>o.delivered),allPaid=c.orders.length>0&&c.orders.every(o=>o.paid===true);
+     html+='<tr id="client-'+encodeURIComponent(c.key)+'" class="clientRow" data-client-key="'+encodeURIComponent(c.key)+'"><td>'+num+'</td><td><b>'+c.name+'</b></td><td>'+c.phone+'</td><td>'+hs+'</td><td>'+sums.pollo+'</td><td>'+sums.puerco+'</td><td>'+sums.rajas+'</td><td>'+sums.espinacas+'</td><td>'+sums.pina+'</td><td>'+sums.fresa+'</td><td><b>'+ct+'</b></td></tr>';
+   });
+   html+='</table></div></details>';
+ });
+ host.innerHTML=html;
+ bindClientRowClicks();
+}
+// Abrir la ficha al tocar una fila de cliente. Se usa un listener real para evitar problemas con onclick inline.
+function bindClientRowClicks(){
+ document.querySelectorAll('#clients .clientRow').forEach(row=>{
+   row.addEventListener('click',function(e){
+     if(e.target.closest('input,button,a,label')) return;
+     const key=this.getAttribute('data-client-key');
+     if(key) showClientResultByKey(key);
+   });
+ });
+}
+
+function updateStats(){
+ const allTotal=orders.reduce((a,o)=>a+total(o),0),delivered=orders.filter(o=>o.delivered).length;
+ el('so').textContent=orders.length;el('st').textContent=allTotal;el('sd').textContent=delivered;el('sp').textContent=orders.length-delivered;
+}
+function setClientStatus(encodedKey,checked){
+ const key=decodeURIComponent(encodedKey);
+ const matches=orders.filter(o=>(o.phone||o.name).trim().toLowerCase()===key);
+ if(!checked && matches.some(o=>o.delivered)){
+   const en=langIsEnglish();
+   const ok=window.confirm(en?'This customer is already marked as delivered. Do you want to mark them as not delivered?':'Este cliente ya está marcado como entregado. ¿Deseas desmarcarlo?');
+   if(!ok){renderClients();return;}
+ }
+ matches.forEach(o=>o.delivered=!!checked); save(); updateStats();
+}
+function setClientPaid(encodedKey,checked){
+ const key=decodeURIComponent(encodedKey);
+ const matches=orders.filter(o=>(o.phone||o.name).trim().toLowerCase()===key);
+ if(!checked && matches.some(o=>o.paid===true)){
+   const en=langIsEnglish();
+   const ok=window.confirm(en?'This customer is already marked as paid. Do you want to mark them as unpaid?':'Este cliente ya está marcado como pagado. ¿Deseas desmarcarlo?');
+   if(!ok){renderClients();return;}
+ }
+ matches.forEach(o=>o.paid=!!checked); save();
+}
+function closeStatusList(){el('statusListModal').classList.remove('show');}
+function openStatusList(delivered){
+ const cc=clientGroups().filter(c=>c.orders.length>0 && c.orders.every(o=>!!o.delivered)===delivered);
+ el('statusListTitle').textContent=delivered?'Entregados':'Pendientes';
+ if(!cc.length){el('statusList').innerHTML='<p class="muted">No hay clientes en esta lista.</p>';}else{
+   el('statusList').innerHTML='<div class="card" style="margin:0"><table><tr><th>N.º</th><th>Cliente</th></tr>'+cc.map(c=>{const num=clientGroups().findIndex(x=>x.key===c.key)+1;return '<tr><td>'+num+'</td><td><b>'+c.name+'</b></td></tr>';}).join('')+'</table></div>';
+ }
+ el('statusListModal').classList.add('show');
+}
+let pendingEdit={id:null,key:null,values:null,original:null,allowDelivered:false};
+function closeEditOrder(){el('editOrderModal').classList.remove('show');}
+function findClientByKey(key){return clientGroups().find(x=>x.key===key);}
+function openEditOrderForClient(encodedKey,force=false){
+ const key=decodeURIComponent(encodedKey),c=findClientByKey(key);if(!c||!c.orders.length)return;
+ const delivered=c.orders.every(o=>o.delivered===true);
+ if(delivered&&!force){
+   pendingEdit={id:null,key:key,values:null,original:null,allowDelivered:false};
+   el('deliveredEditMessage').textContent=langIsEnglish()?'This customer can no longer be modified because the order has already been delivered.':'Este cliente ya no se puede modificar porque su orden ya fue entregada.';
+   el('deliveredEditModal').classList.add('show');return;
+ }
+ const o=[...c.orders].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||Number(b.id)-Number(a.id))[0];
+ el('editOrderId').value=o.id;el('editClientInfo').innerHTML='<b>'+(langIsEnglish()?'Customer:':'Cliente:')+'</b> '+c.name+(c.phone?' — '+c.phone:'');
+ const sc=parseSchedule(o);el('editStart').value=sc.start||o.start||'12:00';el('editEnd').value=sc.end||o.end||'14:00';
+ fs.forEach(f=>el('edit_'+f).value=Number(o[f])||0);
+ pendingEdit.allowDelivered=force;
+ el('editOrderModal').classList.add('show');
+}
+function closeDeliveredEditWarning(){el('deliveredEditModal').classList.remove('show');}
+function continueDeliveredEdit(){const key=pendingEdit.key;closeDeliveredEditWarning();if(key)openEditOrderForClient(encodeURIComponent(key),true);}
+function closeEditClientPicker(){el('editClientPickerModal').classList.remove('show');el('editClientSearch').value='';el('editClientPreview').innerHTML='';}
+function openEditClientFromTable(){el('editClientSearch').value='';el('editClientPreview').innerHTML='';el('editClientPickerModal').classList.add('show');setTimeout(()=>el('editClientSearch').focus(),50);}
+function phoneSearchMatch(a,b){
+ const x=String(a||'').replace(/\D/g,''),y=String(b||'').replace(/\D/g,'');
+ if(!x||!y)return false;
+ if(x===y)return true;
+ const lx=x.length>=10?x.slice(-10):x,ly=y.length>=10?y.slice(-10):y;
+ return lx===ly || x.includes(y) || y.includes(x);
+}
+function findEditClient(){
+ const q=el('editClientSearch').value.trim();if(!q){el('editClientSearch').focus();return;}
+ const needle=q.toLowerCase().replace(/\s+/g,' ');
+ const phoneNeedle=q.replace(/\D/g,'');
+ const available=clientGroups();
+ const matches=available.filter(c=>{
+   const name=String(c.name||'').trim().toLowerCase().replace(/\s+/g,' ');
+   return name.includes(needle) || (phoneNeedle && phoneSearchMatch(c.phone,phoneNeedle));
+ });
+ if(!matches.length){
+   const en=langIsEnglish();
+   el('editClientPreview').innerHTML='<div class="card" style="margin:0"><p style="margin:0 0 10px">'+(en?'The customer you are looking for is not registered.':'El cliente que buscas no está registrado.')+'</p><button class="primary" style="width:100%" onclick="el(\'editClientSearch\').focus()">'+(en?'OK':'Aceptar')+'</button></div>';
+   return;
+ }
+ el('editClientSearch').value='';
+ if(matches.length===1){closeEditClientPicker();openEditOrderForClient(encodeURIComponent(matches[0].key));return;}
+ const en=langIsEnglish();el('editClientPreview').innerHTML='<div class="card" style="margin:0"><b>'+(en?'Select a customer:':'Selecciona un cliente:')+'</b><div style="display:grid;gap:8px;margin-top:10px">'+matches.map(c=>'<button style="width:100%;text-align:left" onclick="closeEditClientPicker();openEditOrderForClient(\''+encodeURIComponent(c.key)+'\')"><b>'+c.name+'</b>'+(c.phone?' — '+c.phone:'')+'</button>').join('')+'</div></div>';
+}
+function saveEditedOrder(e){
+ e.preventDefault();
+ const id=el('editOrderId').value,o=orders.find(x=>String(x.id)===String(id));if(!o)return;
+ const s0=el('editStart').value,s1=el('editEnd').value;if(!s0||!s1)return alert(langIsEnglish()?'Enter the start and end times.':'Escribe la hora desde y hasta.');if(s0>=s1)return alert(langIsEnglish()?'The end time must be after the start time.':'La hora final debe ser después de la inicial.');
+ const values={start:s0,end:s1};fs.forEach(f=>values[f]=Number(el('edit_'+f).value)||0);if(!fs.some(f=>values[f]>0))return alert('Agrega al menos un tamal.');
+ const original={start:o.start||parseSchedule(o).start||'',end:o.end||parseSchedule(o).end||'',scheduleLabel:o.scheduleLabel||parseSchedule(o).label};fs.forEach(f=>original[f]=Number(o[f])||0);
+ pendingEdit={id:Number(o.id),key:(o.phone||o.name).trim().toLowerCase(),values,original,allowDelivered:pendingEdit.allowDelivered};
+ const en=langIsEnglish(),fl=en?{pollo:'Chicken',puerco:'Pork',rajas:'Rajas',espinacas:'Spinach',pina:'Pineapple',fresa:'Strawberry'}:names;
+ let rows='';fs.forEach(f=>rows+='<tr><th>'+fl[f]+'</th><td>'+original[f]+'</td><td>'+values[f]+'</td></tr>');
+ rows+='<tr><th>'+(en?'Schedule':'Horario')+'</th><td>'+fmt(original.start||'00:00')+' – '+fmt(original.end||'00:00')+'</td><td>'+fmt(values.start)+' – '+fmt(values.end)+'</td></tr>';
+ const oldTotal=fs.reduce((a,f)=>a+original[f],0),newTotal=fs.reduce((a,f)=>a+values[f],0);
+ rows+='<tr><th>'+(en?'Total tamales':'Total de tamales')+'</th><td><b>'+oldTotal+'</b></td><td><b>'+newTotal+'</b></td></tr>';
+ el('editReviewTitle').textContent=en?'Review modification':'Revisar modificación';
+ el('editReviewContent').innerHTML='<p><b>'+(en?'Order comparison':'Comparación de la orden')+'</b></p><div style="overflow:auto"><table><tr><th>'+(en?'Item':'Dato')+'</th><th>'+(en?'Previous order':'Orden anterior')+'</th><th>'+(en?'Modified order':'Orden modificada')+'</th></tr>'+rows+'</table></div>';
+ closeEditOrder();el('editReviewModal').classList.add('show');
+}
+function closeEditReview(){el('editReviewModal').classList.remove('show');}
+function acceptEditReview(){
+ const p=pendingEdit;
+ if(!p.id||!p.values){closeEditReview();return;}
+ const o=orders.find(x=>Number(x.id)===Number(p.id));if(!o){closeEditReview();return;}
+ const customerOrders=orders.filter(x=>(x.phone||x.name).trim().toLowerCase()===p.key);
+ const oldCustomerTotal=customerOrders.reduce((a,x)=>a+fs.reduce((b,f)=>b+(Number(x[f])||0),0),0)/12*38;
+ const oldOrderTotal=fs.reduce((a,f)=>a+(Number(o[f])||0),0)/12*38;
+ const newOrderTotal=fs.reduce((a,f)=>a+(Number(p.values[f])||0),0)/12*38;
+ const delta=Number((newOrderTotal-oldOrderTotal).toFixed(2));
+ if(p.allowDelivered && delta!==0){
+   pendingEdit.adjustment=delta;
+   pendingEdit.amountDue=Math.abs(delta);
+   closeEditReview();
+   openModificationPayment();
+   return;
+ }
+ applyPendingEditAndFinish(p,delta,0);
+}
+function applyPendingEditAndFinish(p,netPaid,cashReceived){
+ const o=orders.find(x=>Number(x.id)===Number(p.id));if(!o)return;
+ fs.forEach(f=>o[f]=p.values[f]);o.start=p.values.start;o.end=p.values.end;o.scheduleId='custom_'+p.values.start+'_'+p.values.end;o.scheduleLabel=fmt(p.values.start)+' – '+fmt(p.values.end);
+ if(netPaid!==0){o.paymentTotal=Number(((Number(o.paymentTotal)||0)+netPaid).toFixed(2));if(netPaid>0&&cashReceived>0)o.cashReceivedTotal=Number((Number(o.cashReceivedTotal!=null?o.cashReceivedTotal:0)+cashReceived).toFixed(2));}
+ save();pendingEdit={id:null,key:null,values:null,original:null,allowDelivered:false,amountDue:0,adjustment:0};closeEditReview();closeClientResult();closeModificationPayment();render();alert(langIsEnglish()?'Order information updated ✓':'Información del pedido actualizada ✓');
+}
+function openModificationPayment(){
+ const en=langIsEnglish(),amount=Number(pendingEdit.amountDue)||0,isRefund=(Number(pendingEdit.adjustment)||0)<0;
+ el('modPaymentTitle').textContent=isRefund?(en?'Refund':'Devolución'):(en?'Additional payment':'Cobro adicional');
+ el('modPaymentInfo').textContent=isRefund?(en?'This order was reduced. Return this amount to the customer.':'La orden se redujo. Debes devolver esta cantidad al cliente.'):(en?'This order was increased. The modified order has an outstanding balance.':'La orden aumentó. La orden modificada tiene una cantidad pendiente.');
+ el('modPaymentDueLabel').textContent=isRefund?(en?'Amount to return':'Cantidad a devolver'):(en?'Amount due':'Cantidad faltante');
+ el('modPaymentDue').textContent='$'+money(amount);
+ el('modReceivedLabel').textContent=isRefund?(en?'Refund':'Dinero recibido'):(en?'Amount received':'Dinero recibido');
+ el('modReceivedLabel').style.display=isRefund?'none':'block';
+ el('modAmountReceived').style.display=isRefund?'none':'block';
+ el('modPaymentBtn').textContent=isRefund?(en?'Confirm refund':'Confirmar devolución'):(en?'Charge':'Cobrar');
+ el('modChange').textContent=isRefund?'': '';
+ el('modAmountReceived').value='';
+ el('modPaymentModal').classList.add('show');
+ if(!isRefund)setTimeout(()=>el('modAmountReceived').focus(),50);
+}
+function closeModificationPayment(){el('modPaymentModal').classList.remove('show');el('modAmountReceived').value='';el('modChange').textContent='';el('modReceivedLabel').style.display='block';el('modAmountReceived').style.display='block';}
+function updateModificationChange(){
+ if((Number(pendingEdit.adjustment)||0)<0)return;
+ const received=Number(el('modAmountReceived').value),due=Number(pendingEdit.amountDue)||0;
+ if(!Number.isFinite(received)||el('modAmountReceived').value===''){el('modChange').textContent='';return;}
+ const diff=received-due, en=langIsEnglish();
+ el('modChange').textContent=diff>=0?((en?'Change':'Cambio')+': $'+money(diff)):((en?'Amount due':'Falta dinero')+': $'+money(Math.abs(diff)));
+}
+function confirmModificationPayment(){
+ const adjustment=Number(pendingEdit.adjustment)||0,due=Number(pendingEdit.amountDue)||0;
+ if(adjustment<0){applyPendingEditAndFinish({...pendingEdit},adjustment,0);return;}
+ const received=Number(el('modAmountReceived').value);
+ if(!Number.isFinite(received)||received<due){updateModificationChange();el('modAmountReceived').focus();return;}
+ applyPendingEditAndFinish({...pendingEdit},due,received);
+}
+
+function closeSearchNotFound(){el('searchNotFoundModal').classList.remove('show');}
+function closeClientResult(){el('clientResultModal').classList.remove('show');}
+function openDeleteFromSearch(encodedKey){
+ const key=decodeURIComponent(encodedKey),c=findClientByKey(key);if(!c)return;
+ if(!confirm('¿Eliminar definitivamente a '+c.name+' y todos sus pedidos?'))return;
+ orders=orders.filter(o=>(o.phone||o.name).trim().toLowerCase()!==key);save();closeClientResult();render();alert('Cliente eliminado ✓');
+}
+function showClientResultByKey(key){
+ try{key=decodeURIComponent(key);}catch(e){}
+ const c=findClientByKey(key);if(!c)return;
+ const sums=clientSums(c),ct=fs.reduce((a,f)=>a+sums[f],0),num=clientGroups().findIndex(x=>x.key===c.key)+1;
+ const o=[...c.orders].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||Number(b.id)-Number(a.id))[0];if(!o)return;
+ const allDelivered=c.orders.length>0&&c.orders.every(x=>x.delivered),allPaid=c.orders.length>0&&c.orders.every(x=>x.paid===true);
+ const paid=c.orders.reduce((a,x)=>a+(Number(x.paymentTotal)||0),0),schedule=[...new Set(c.orders.map(x=>parseSchedule(x).label))].join('<br>');
+ const en=langIsEnglish(),date=o.date||'—',fl=en?{pollo:'Chicken',puerco:'Pork',rajas:'Rajas',espinacas:'Spinach',pina:'Pineapple',fresa:'Strawberry'}:names;
+ let rows='';fs.forEach(f=>rows+='<tr><th>'+fl[f]+'</th><td>'+sums[f]+'</td></tr>');
+ el('clientResultTitle').textContent=en?'Customer information':'Información del cliente';
+ el('clientResult').innerHTML='<div class="card" style="margin:0"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-bottom:12px"><div><b>'+(en?'#Customer':'N.º de cliente')+':</b> '+num+'</div><div><b>'+(en?'Name':'Nombre')+':</b> '+c.name+'</div><div><b>'+(en?'Phone':'Teléfono')+':</b> '+(c.phone||'—')+'</div><div><b>'+(en?'Date':'Fecha')+':</b> '+date+'</div><div><b>'+(en?'Schedule':'Horario')+':</b> '+schedule+'</div></div><table><tr><th colspan="2">'+(en?'Flavors':'Sabores')+'</th></tr>'+rows+'<tr><th>'+(en?'Total tamales':'Total de tamales')+'</th><td><b>'+ct+'</b></td></tr><tr><th>'+(en?'Amount paid':'Total pagado')+'</th><td><b>$'+money(paid)+'</b></td></tr><tr><th>'+(en?'Paid':'Pagado')+'</th><td>✓ '+(allPaid?(en?'Yes':'Sí'):'No')+'</td></tr><tr><th>'+(en?'Delivered':'Entregado')+'</th><td>✓ '+(allDelivered?(en?'Yes':'Sí'):'No')+'</td></tr></table><div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button type="button" class="primary" onclick="closeClientResult();openEditOrderForClient(\''+encodeURIComponent(c.key)+'\')">'+(en?'Modify order':'Modificar orden')+'</button><button type="button" class="primary" onclick="chargeFromHomeResult(\''+encodeURIComponent(c.key)+'\')">💵 '+(en?'Charge':'Cobrar')+'</button></div></div>';
+ el('clientResultModal').classList.add('show');
+}
+
+function chargeFromHomeResult(encodedKey){
+ const key=decodeURIComponent(String(encodedKey||''));
+ const c=clientGroups().find(x=>String(x.key)===String(key));
+ if(!c)return;
+ const served=c.orders.length>0&&c.orders.every(o=>o.paid===true&&o.delivered===true);
+ const en=langIsEnglish();
+ if(served){
+   alert(en?'This customer has already paid for the order and it has been delivered.':'Este cliente ya realizó el pago de su orden y fue entregada.');
+   return;
+ }
+ closeClientResult();
+ chargeClientKey=key;
+ el('chargeLookupControls').style.display='none';
+ el('chargePreview').innerHTML='';
+ el('chargeModal').classList.add('show');
+ showChargeCustomer(encodeURIComponent(key));
+}
+
+function confirmClientResultEdit(encodedKey,id){
+ const key=decodeURIComponent(encodedKey),o=orders.find(x=>String(x.id)===String(id));
+ if(!o)return;
+ const s0=el('resultEditStart').value,s1=el('resultEditEnd').value;
+ if(!s0||!s1)return alert(langIsEnglish()?'Enter the start and end times.':'Escribe la hora desde y hasta.');
+ if(s0>=s1)return alert(langIsEnglish()?'The end time must be after the start time.':'La hora final debe ser después de la inicial.');
+ fs.forEach(f=>o[f]=Number(el('resultEdit_'+f).value)||0);
+ if(!total(o))return alert(langIsEnglish()?'Add at least one tamale.':'Agrega al menos un tamal.');
+ o.start=s0;o.end=s1;o.scheduleId='custom_'+s0+'_'+s1;o.scheduleLabel=fmt(s0)+' – '+fmt(s1);
+ save();closeClientResult();render();alert(langIsEnglish()?'Order information updated ✓':'Información del pedido actualizada ✓');
+}
+
+function searchFromHome(){
+ const q=el('homeSearch').value.trim();
+ const en=langIsEnglish();
+ if(!q){el('homeSearchMsg').textContent=en?'Enter a name or phone number.':'Escribe un nombre o teléfono.';return;}
+ const needle=q.toLowerCase().replace(/\s+/g,' '),phoneNeedle=q.replace(/\D/g,'');
+ const matches=clientGroups().filter(c=>{
+   const name=String(c.name||'').trim().toLowerCase().replace(/\s+/g,' ');
+   return name.includes(needle) || (phoneNeedle && phoneSearchMatch(c.phone,phoneNeedle));
+ });
+ el('homeSearch').value='';el('homeSearchMsg').textContent='';
+ if(!matches.length){
+   el('searchNotFoundModal').querySelector('h2').textContent=en?'Customer not found':'Cliente no registrado';
+   el('searchNotFoundModal').querySelector('p').textContent=en?'The customer you are looking for is not registered.':'El cliente que buscas no está registrado.';
+   el('searchNotFoundModal').querySelector('.primary').textContent=en?'OK':'Aceptar';
+   el('searchNotFoundModal').classList.add('show');return;
+ }
+ if(matches.length===1){showClientResultByKey(matches[0].key);return;}
+ el('clientResultTitle').textContent=langIsEnglish()?'Select a customer':'Selecciona un cliente';
+ el('clientResult').innerHTML='<p class="muted">'+(langIsEnglish()?'Several customers were found. Select one to view the information:':'Encontré varios clientes. Selecciona uno para ver su información:')+'</p><div style="display:grid;gap:8px">'+matches.map((c,i)=>'<button style="width:100%;text-align:left" onclick="showClientResultByKey(\''+encodeURIComponent(c.key)+'\')"><b>'+(i+1)+'. '+c.name+'</b>'+(c.phone?' — '+c.phone:'')+'</button>').join('')+'</div>';
+ el('clientResultModal').classList.add('show');
+}
+function langIsEnglish(){return document.documentElement.lang==='en';}
+function setClientStatusFromSearch(encodedKey,checked){
+ const key=decodeURIComponent(encodedKey);
+ if(!checked){
+   const c=findClientByKey(key);
+   if(c && c.orders.some(o=>o.delivered)){
+     const en=langIsEnglish();
+     const ok=window.confirm(en?'This customer is already marked as delivered. Do you want to unmark it?':'Este cliente ya está marcado como entregado. ¿Deseas desmarcarlo?');
+     if(!ok){
+       const row=el('clientResult').querySelectorAll('input')[0]; if(row)row.checked=true;
+       return;
+     }
+   }
+ }
+ orders.forEach(o=>{if((o.phone||o.name).trim().toLowerCase()===key)o.delivered=!!checked;});
+ save();
+ const c=clientGroups().find(x=>x.key===key);
+ if(c){const all=c.orders.length>0&&c.orders.every(o=>o.delivered);const row=el('clientResult').querySelectorAll('input')[0];if(row)row.checked=all;}
+ updateStats();
+ const clientRow=el('client-'+encodeURIComponent(key));
+ if(clientRow){const cb=clientRow.querySelectorAll('input[type=checkbox]')[0];if(cb)cb.checked=checked;}
+}
+function setClientPaidFromSearch(encodedKey,checked){
+ const key=decodeURIComponent(encodedKey);
+ if(!checked){
+   const c=findClientByKey(key);
+   if(c && c.orders.some(o=>o.paid===true)){
+     const en=langIsEnglish();
+     const ok=window.confirm(en?'This customer is already marked as paid. Do you want to unmark it?':'Este cliente ya está marcado como pagado. ¿Deseas desmarcarlo?');
+     if(!ok){
+       const row=el('clientResult').querySelectorAll('input')[1]; if(row)row.checked=true;
+       return;
+     }
+   }
+ }
+ orders.forEach(o=>{if((o.phone||o.name).trim().toLowerCase()===key)o.paid=!!checked;});
+ save();
+ const c=clientGroups().find(x=>x.key===key);
+ if(c){const all=c.orders.length>0&&c.orders.every(o=>o.paid===true);const row=el('clientResult').querySelectorAll('input')[1];if(row)row.checked=all;}
+ const clientRow=el('client-'+encodeURIComponent(key));
+ if(clientRow){const cb=clientRow.querySelectorAll('input[type=checkbox]')[1];if(cb)cb.checked=checked;}
+}
+
+function renderDesglose(){
+ const groups={};
+ orders.forEach(o=>{
+   const t=parseSchedule(o);
+   const key=(t.start&&t.end)?t.start+'_'+t.end:'sin_horario_'+t.label;
+   if(!groups[key])groups[key]={start:t.start||'99:99',end:t.end||'',label:t.label,orders:[]};
+   groups[key].orders.push(o);
+ });
+ const mins=t=>{if(!t)return 999999;const [h,mi]=t.split(':').map(Number);return h*60+mi;};
+ const sorted=Object.values(groups).sort((a,b)=>mins(a.start)-mins(b.start));
+ let d='';
+ sorted.forEach(gr=>{
+   const dozens={},halves={},loose={};
+   fs.forEach(f=>{dozens[f]=0;halves[f]=0;loose[f]=0;});
+
+   // Primero se desglosa CADA cliente y después se suman sus presentaciones.
+   // Así, dos clientes con 6 cada uno producen 2 medias docenas,
+   // en lugar de convertirse en una sola docena.
+   gr.orders.forEach(o=>fs.forEach(f=>{
+     const q=Math.max(0,Number(o[f])||0);
+     dozens[f]+=Math.floor(q/12);
+     const rem=q%12;
+     halves[f]+=Math.floor(rem/6);
+     loose[f]+=rem%6;
+   }));
+
+   d+='<div class="card"><h3 style="margin-top:0">'+gr.label+'</h3><div style="overflow:auto"><table><tr><th>Presentación</th><th>Pollo</th><th>Puerco</th><th>Rajas</th><th>Espinacas</th><th>Piña</th><th>Fresa</th></tr>';
+   const addRow=(label,data)=>{
+     d+='<tr><td><b>'+label+'</b></td>'+fs.map(f=>'<td>'+data[f]+'</td>').join('')+'</tr>';
+   };
+   addRow('Docena',dozens);
+   addRow('1/2 docena',halves);
+   addRow('Sueltos',loose);
+   d+='</table></div></div>';
+ });
+ if(!orders.length)d='<p class="muted">Todavía no hay pedidos registrados.</p>';
+ el('desgloseContent').innerHTML=d;
+}
+
+function escapeHtml(value){return String(value==null?'':value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]));}
+function moneyForPublic(qty){const amount=(Number(qty)||0)/12*38;return amount.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2});}
+let publicPendingOrders=[];let publicPendingIndex=0;
+let publicModificationRequests=[];let publicModificationIndex=0;
+function renderPublicPendingButton(){ const wrap=el('publicPendingWrap'); if(!wrap)return; const n=publicPendingOrders.length; wrap.innerHTML='<div style="display:flex;justify-content:flex-end"><button type="button" class="primary" style="margin-top:0;border-radius:999px;padding:8px 12px;min-width:0;box-shadow:0 5px 16px #6b3b1c18" onclick="openPublicOrders()">'+(n?'🔔 '+(langIsEnglish()?'Orders to confirm':'Pedidos por confirmar')+' ('+n+')':(langIsEnglish()?'No pending or confirmation orders':'No hay pedidos pendientes o por confirmar'))+'</button></div>'; }
+function renderPublicModificationButton(){
+ const wrap=el('publicModificationWrap');if(!wrap)return;const n=publicModificationRequests.length;
+ wrap.innerHTML=n?'<div style="display:flex;justify-content:flex-end"><button type="button" class="primary" style="margin-top:0;border-radius:999px;padding:8px 12px;min-width:0;box-shadow:0 5px 16px #6b3b1c18;background:linear-gradient(135deg,#7c3aed,#a855f7)" onclick="openPublicModifications()">✏️ '+(langIsEnglish()?'Changes to review':'Cambios por revisar')+' ('+n+')</button></div>':'';
+}
+function closePublicOrders(){el('publicOrdersModal').classList.remove('show');}
+function closePublicModifications(){el('publicModificationsModal').classList.remove('show');}
+async function loadPublicPendingOrders(){
+ if(!currentUser){publicPendingOrders=[];publicModificationRequests=[];renderPublicPendingButton();renderPublicModificationButton();return;}
+ try{
+  const load=async()=>{
+   const a=await supabaseClient.from('public_order_requests').select('id,name,phone,order_date,start_time,end_time,pollo,puerco,rajas,espinacas,pina,fresa,customer_message,status,created_at').eq('owner_user_id',currentUser.id).eq('status','pending').order('created_at',{ascending:true});
+   if(a.error)throw a.error;
+   const b=await supabaseClient.from('public_order_modification_requests').select('*').eq('owner_user_id',currentUser.id).eq('status','pending').order('created_at',{ascending:true});
+   if(b.error)throw b.error;
+   return {pending:a.data||[],mods:b.data||[]};
+  };
+  let r=await load();
+  // A realtime event can arrive while the first query is finishing. Read once more
+  // so the counter represents the complete current queue.
+  await new Promise(resolve=>setTimeout(resolve,250));
+  r=await load();
+  // Una orden nueva solo debe salir de "Pedidos por confirmar" cuando
+  // existe un cambio pendiente que corresponde EXACTAMENTE a esa orden:
+  // mismo #pedido (original_order_id) y mismo teléfono. Esto evita que
+  // una coincidencia accidental de IDs o un cambio de otro cliente oculte
+  // pedidos que todavía deben confirmarse.
+  const normalizePhone=v=>String(v??'').replace(/\D/g,'');
+  const pendingModificationKeys=new Set(
+    (r.mods||[])
+      .filter(m=>m.original_source==='public' && m.original_order_id!=null)
+      .map(m=>Number(m.original_order_id)+'|'+normalizePhone(m.phone))
+  );
+  publicPendingOrders=(r.pending||[]).filter(o=>{
+    const key=Number(o.id)+'|'+normalizePhone(o.phone);
+    return !pendingModificationKeys.has(key);
+  });
+  publicModificationRequests=r.mods;
+  if(publicPendingOrders.length===0) publicPendingIndex=0;
+  else if(publicPendingIndex>=publicPendingOrders.length) publicPendingIndex=publicPendingOrders.length-1;
+  if(publicModificationRequests.length===0) publicModificationIndex=0;
+  else if(publicModificationIndex>=publicModificationRequests.length) publicModificationIndex=publicModificationRequests.length-1;
+  renderPublicPendingButton();renderPublicModificationButton();
+  if(el('publicOrdersModal')?.classList.contains('show')) renderPublicPendingOrder();
+  if(el('publicModificationsModal')?.classList.contains('show')) renderPublicModification();
+ }catch(e){console.error('Error cargando solicitudes públicas:',e);}
+}
+function renderPublicPendingOrder(){
+ const o=publicPendingOrders[publicPendingIndex],box=el('publicOrderContent');if(!box)return;
+ if(!o){box.innerHTML='<div class="card" style="margin:0;text-align:center"><div style="font-size:42px">✅</div><h3>'+(langIsEnglish()?'No more orders to confirm':'No hay más pedidos por confirmar')+'</h3><button type="button" class="primary" onclick="closePublicOrders()">'+(langIsEnglish()?'Close':'Cerrar')+'</button></div>';return;}
+ const en=langIsEnglish(),names=en?{pollo:'Chicken',puerco:'Pork',rajas:'Rajas',espinacas:'Spinach',pina:'Pineapple',fresa:'Strawberry'}:{pollo:'Pollo',puerco:'Puerco',rajas:'Rajas',espinacas:'Espinacas',pina:'Piña',fresa:'Fresa'},qty=fs.reduce((a,f)=>a+(Number(o[f])||0),0);
+ let flavors=fs.filter(f=>(Number(o[f])||0)>0).map(f=>'<div style="display:flex;justify-content:space-between;padding:5px 0"><span>'+names[f]+'</span><b>'+o[f]+'</b></div>').join('');
+ box.innerHTML='<div class="card" style="margin:0"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>'+(en?'Order #':'Pedido #')+o.id+'</b><span class="muted">'+(publicPendingIndex+1)+' / '+publicPendingOrders.length+'</span></div><div style="margin-top:12px"><b>'+(en?'Name':'Nombre')+':</b> '+escapeHtml(o.name)+'</div><div style="margin-top:7px"><b>'+(en?'Phone':'Teléfono')+':</b> '+escapeHtml(o.phone||'—')+'</div><div style="margin-top:7px"><b>'+(en?'Date':'Fecha')+':</b> '+o.order_date+'</div><div style="margin-top:7px"><b>'+(en?'Schedule':'Horario')+':</b> '+fmt(o.start_time)+' – '+fmt(o.end_time)+'</div><div style="margin-top:12px"><b>'+(en?'Flavors and quantities':'Sabores y cantidades')+':</b><div style="margin-top:6px">'+flavors+'</div></div>'+(o.customer_message?'<div class="notice" style="margin-top:10px"><b>'+(en?'Customer message':'Mensaje del cliente')+':</b><div style="margin-top:5px">'+escapeHtml(o.customer_message)+'</div></div>':'')+'<div class="total" style="margin-top:10px"><div><span>'+(en?'Total tamales':'Total de tamales')+':</span> '+qty+'</div><div style="margin-top:5px"><span>'+(en?'Total to pay':'Total a pagar')+':</span> $'+moneyForPublic(qty)+'</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><button type="button" class="primary" style="margin-top:0" onclick="processPublicOrder(\'rejected\')">❌ '+(en?'Reject':'Rechazar')+'</button><button type="button" class="primary" style="margin-top:0" onclick="processPublicOrder(\'confirmed\')">✅ '+(en?'Accept':'Aceptar')+'</button></div>';
+}
+function openPublicOrders(){publicPendingIndex=0;renderPublicPendingOrder();el('publicOrdersModal').classList.add('show');}
+async function processPublicOrder(status){
+ const o=publicPendingOrders[publicPendingIndex];if(!o||!currentUser)return;const en=langIsEnglish();
+ try{const {error}=await supabaseClient.from('public_order_requests').update({status}).eq('id',o.id).eq('owner_user_id',currentUser.id).eq('status','pending');if(error)throw error;
+  if(status==='confirmed'){const order={id:Date.now(),publicRequestId:o.id,name:o.name,phone:o.phone,date:o.order_date,scheduleId:'public_'+o.start_time+'_'+o.end_time,scheduleLabel:fmt(o.start_time)+' – '+fmt(o.end_time),start:o.start_time,end:o.end_time,notes:'Pedido recibido desde ABI\'S TAMALES',publicCustomerMessage:o.customer_message||'',delivered:false,paid:false};fs.forEach(f=>order[f]=Number(o[f])||0);orders.push(order);save();}
+  publicPendingOrders.splice(publicPendingIndex,1);if(publicPendingIndex>=publicPendingOrders.length)publicPendingIndex=Math.max(0,publicPendingOrders.length-1);render();renderPublicPendingButton();renderPublicPendingOrder();
+ }catch(e){alert(en?'We could not process this order. Please try again.':'No pudimos procesar este pedido. Intenta nuevamente.');console.error(e)}
+}
+function renderPublicModification(){
+ const r=publicModificationRequests[publicModificationIndex],box=el('publicModificationContent');if(!box)return;
+ if(!r){box.innerHTML='<div class="card" style="margin:0;text-align:center"><div style="font-size:42px">✅</div><h3>'+ (langIsEnglish()?'No more changes to review':'No hay más cambios por revisar') +'</h3><button type="button" class="primary" onclick="closePublicModifications()">'+(langIsEnglish()?'Close':'Cerrar')+'</button></div>';return;}
+ const en=langIsEnglish(),names=en?{pollo:'Chicken',puerco:'Pork',rajas:'Rajas',espinacas:'Spinach',pina:'Pineapple',fresa:'Strawberry'}:{pollo:'Pollo',puerco:'Puerco',rajas:'Rajas',espinacas:'Espinacas',pina:'Piña',fresa:'Fresa'};
+ const row=(f,label)=>'<div style="display:flex;justify-content:space-between;padding:5px 0"><span>'+label+'</span><b>'+r['old_'+f]+'</b></div>';
+ const oldQty=fs.reduce((a,f)=>a+(Number(r['old_'+f])||0),0),newQty=fs.reduce((a,f)=>a+(Number(r['new_'+f])||0),0);
+ box.innerHTML='<div class="card" style="margin:0"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+(en?'Modification #':'Modificación #')+r.id+'</b><span class="muted">'+(publicModificationIndex+1)+' / '+publicModificationRequests.length+'</span></div><div style="margin-top:12px"><b>'+(en?'Customer':'Cliente')+':</b> '+escapeHtml(r.name)+'</div><div style="margin-top:6px"><b>'+(en?'Phone':'Teléfono')+':</b> '+escapeHtml(r.phone)+'</div><div style="margin-top:6px"><b>'+(en?'Date':'Fecha')+':</b> '+r.order_date+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><div style="padding:12px;border:1px solid #eadfd7;border-radius:14px;background:#fffaf7"><b>'+(en?'PREVIOUS ORDER':'ORDEN ANTERIOR')+'</b><div style="margin-top:8px">'+fmt(r.old_start_time)+' – '+fmt(r.old_end_time)+'</div>'+fs.map(f=>row(f,names[f])).join('')+'<hr><b>'+ (en?'Total':'Total') +': '+oldQty+'</b></div><div style="padding:12px;border:1px solid #eadfd7;border-radius:14px;background:#f9f5ff"><b>'+(en?'NEW MODIFICATION':'NUEVA MODIFICACIÓN')+'</b><div style="margin-top:8px">'+fmt(r.new_start_time)+' – '+fmt(r.new_end_time)+'</div>'+fs.map(f=>'<div style="display:flex;justify-content:space-between;padding:5px 0"><span>'+names[f]+'</span><b>'+r['new_'+f]+'</b></div>').join('')+'<hr><b>Total: '+newQty+'</b></div></div>'+(r.message?'<div class="notice" style="margin-top:12px"><b>'+(en?'Customer message':'Mensaje del cliente')+':</b><div style="margin-top:5px">'+escapeHtml(r.message)+'</div></div>':'')+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><button type="button" class="primary" onclick="processPublicModification(\'rejected\')">❌ '+(en?'Reject modification':'Rechazar modificación')+'</button><button type="button" class="primary" onclick="processPublicModification(\'approved\')">✅ '+(en?'Approve modification':'Aprobar modificación')+'</button></div>';
+}
+function openPublicModifications(){publicModificationIndex=0;renderPublicModification();el('publicModificationsModal').classList.add('show');}
+async function processPublicModification(action){
+ const r=publicModificationRequests[publicModificationIndex];if(!r||!currentUser)return;const en=langIsEnglish();
+ try{
+  const {error}=await supabaseClient.rpc('process_public_order_modification',{p_request_id:r.id,p_action:action});if(error)throw error;
+  if(action==='approved'){
+   const o=orders.find(x=>Number(x.publicRequestId)===Number(r.original_order_id));
+   if(o){o.name=r.name;o.phone=r.phone;o.date=r.order_date;o.start=r.new_start_time;o.end=r.new_end_time;o.scheduleId='public_'+r.new_start_time+'_'+r.new_end_time;o.scheduleLabel=fmt(r.new_start_time)+' – '+fmt(r.new_end_time);fs.forEach(f=>o[f]=Number(r['new_'+f])||0);save();}
+  }
+  publicModificationRequests.splice(publicModificationIndex,1);if(publicModificationIndex>=publicModificationRequests.length)publicModificationIndex=Math.max(0,publicModificationRequests.length-1);render();renderPublicModificationButton();renderPublicModification();
+ }catch(e){alert(en?'We could not process this modification. Please try again.':'No pudimos procesar esta modificación. Intenta nuevamente.');console.error(e)}
+}
+
+function render(){
+ renderCompleted();
+ renderPublicPendingButton();
+ const allTotal=orders.reduce((a,o)=>a+total(o),0),delivered=orders.filter(o=>o.delivered).length;
+ el('so').textContent=orders.length;el('st').textContent=allTotal;el('sd').textContent=delivered;el('sp').textContent=orders.length-delivered;
+ const groups={};
+ orders.forEach(o=>{const t=parseSchedule(o);const key=(t.start&&t.end)?t.start+'_'+t.end:'sin_horario_'+t.label;if(!groups[key])groups[key]={start:t.start||'99:99',end:t.end||'',label:t.label,orders:[]};groups[key].orders.push(o);});
+ const mins=t=>{if(!t)return 999999;const [h,mi]=t.split(':').map(Number);return h*60+mi};
+ const sorted=Object.values(groups).sort((a,b)=>mins(a.start)-mins(b.start));
+ let p='';
+ sorted.forEach(gr=>{const sums={pollo:0,puerco:0,rajas:0,espinacas:0,pina:0,fresa:0};gr.orders.forEach(o=>fs.forEach(f=>sums[f]+=Number(o[f])||0));const gt=fs.reduce((a,f)=>a+sums[f],0);p+='<div class="card"><h3 style="margin-top:0">'+gr.label+'</h3><div style="overflow:auto"><table><tr><th>Pollo</th><th>Puerco</th><th>Rajas</th><th>Espinacas</th><th>Piña</th><th>Fresa</th><th>Total</th></tr><tr><td><b>'+sums.pollo+'</b></td><td><b>'+sums.puerco+'</b></td><td><b>'+sums.rajas+'</b></td><td><b>'+sums.espinacas+'</b></td><td><b>'+sums.pina+'</b></td><td><b>'+sums.fresa+'</b></td><td><b>'+gt+'</b></td></tr></table></div></div>';});
+ const grand={pollo:0,puerco:0,rajas:0,espinacas:0,pina:0,fresa:0};
+ orders.forEach(o=>fs.forEach(f=>grand[f]+=Number(o[f])||0));
+ const finalTotal=fs.reduce((a,f)=>a+grand[f],0);
+ if(orders.length)p+='<div class="card" style="border:2px solid currentColor"><h2 style="margin-top:0">TOTAL FINAL</h2><div style="overflow:auto"><table><tr><th>Pollo</th><th>Puerco</th><th>Rajas</th><th>Espinacas</th><th>Piña</th><th>Fresa</th><th>TOTAL FINAL</th></tr><tr><td><b>'+grand.pollo+'</b></td><td><b>'+grand.puerco+'</b></td><td><b>'+grand.rajas+'</b></td><td><b>'+grand.espinacas+'</b></td><td><b>'+grand.pina+'</b></td><td><b>'+grand.fresa+'</b></td><td><b>'+finalTotal+'</b></td></tr></table></div></div>';
+ else p='<p class="muted">Todavía no hay pedidos registrados.</p>';
+ el('prod').innerHTML=p;
+ renderClients();
+ renderDesglose();
+}
+
+let chargeClientKey=null, chargeTotal=0;
+function money(v){const n=Number(v)||0;return n.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2});}
+function servedCustomers(){return clientGroups().filter(c=>c.orders.length>0&&c.orders.every(o=>o.paid===true)&&c.orders.every(o=>o.delivered===true));}
+function cashTotals(){const served=servedCustomers();let totalCash=0;served.forEach(c=>c.orders.forEach(o=>{totalCash+=Number(o.paymentTotal)||0;}));return {totalCash,count:served.length};}
+function openCash(){const t=cashTotals(),en=langIsEnglish();el('cashTitle').textContent=en?'Cash total':'Total efectivo';el('cashTotalLabel').textContent=en?'Total cash':'Total efectivo';el('cashOrdersLabel').textContent=en?'Paid orders':'Pedidos cobrados';el('cashTotal').textContent='$'+money(t.totalCash);el('cashOrders').textContent=t.count;el('cashModal').classList.add('show');}
+function closeCash(){el('cashModal').classList.remove('show');}
+function openCharge(){
+ el('chargeLookupControls').style.display='block';
+ el('chargeSearch').value='';el('chargePreview').innerHTML='';el('chargeModal').classList.add('show');
+ setTimeout(()=>el('chargeSearch').focus(),50);
+}
+function closeCharge(){el('chargeModal').classList.remove('show');el('chargeLookupControls').style.display='block';el('chargeSearch').value='';el('chargePreview').innerHTML='';chargeClientKey=null;}
+function closePayment(){el('paymentModal').classList.remove('show');chargeClientKey=null;chargeTotal=0;el('paymentBox').style.display='none';el('amountReceived').value='';el('changeResult').textContent='';}
+function findChargeCustomer(){
+ const q=el('chargeSearch').value.trim(); if(!q){el('chargeSearch').focus();return;}
+ const needle=q.toLowerCase().replace(/\s+/g,' '), phoneNeedle=q.replace(/\D/g,'');
+ const matches=clientGroups().filter(c=>{const served=c.orders.length>0&&c.orders.every(o=>o.paid===true)&&c.orders.every(o=>o.delivered===true);if(served)return false;const name=String(c.name||'').trim().toLowerCase().replace(/\s+/g,' ');const phone=String(c.phone||'').replace(/\D/g,'');return name.includes(needle)||(phoneNeedle&&phone.includes(phoneNeedle));});
+ if(!matches.length){el('chargePreview').innerHTML='<div class="card" style="margin:0"><p style="margin:0">'+(langIsEnglish()?'Customer not found.':'El cliente que buscas no está registrado.')+'</p></div>';return;}
+ if(matches.length===1){showChargeCustomer(matches[0].key);return;}
+ const en=langIsEnglish();el('chargePreview').innerHTML='<div class="card" style="margin:0"><b>'+(en?'Select a customer:':'Selecciona un cliente:')+'</b><div style="display:grid;gap:8px;margin-top:10px">'+matches.map(c=>'<button type="button" style="width:100%;text-align:left" onclick="showChargeCustomer(\''+encodeURIComponent(c.key)+'\')"><b>'+c.name+'</b>'+(c.phone?' — '+c.phone:'')+'</button>').join('')+'</div></div>';
+}
+function showChargeCustomer(encodedKey){
+ const key=decodeURIComponent(encodedKey),c=clientGroups().find(x=>x.key===key);if(!c)return;
+ if(c.orders.length && c.orders.every(o=>o.paid===true)){
+   const en=langIsEnglish();
+   el('chargePreview').innerHTML='<div class="card" style="margin:0"><b>'+(
+     en?'This customer has already been paid.':'Este cliente ya está pagado.'
+   )+'</b></div>';
+   return;
+ }
+ chargeClientKey=key;const qty=c.orders.reduce((a,o)=>a+total(o),0);chargeTotal=0;
+ el('chargePreview').innerHTML='<div class="card" style="margin:0"><b>'+(langIsEnglish()?'Customer information':'Datos del cliente')+'</b><p style="margin:10px 0 4px"><b>'+(langIsEnglish()?'Name':'Nombre')+':</b> '+c.name+'</p><p style="margin:4px 0"><b>'+(langIsEnglish()?'Phone':'Teléfono')+':</b> '+(c.phone|| (langIsEnglish()?'No phone':'Sin teléfono'))+'</p><p style="margin:4px 0"><b>'+(langIsEnglish()?'Tamale quantity':'Cantidad de tamales')+':</b> '+qty+'</p></div><button type="button" class="primary" style="width:100%;margin-top:10px" onclick="openPaymentForCustomer()">'+(langIsEnglish()?'Continue':'Continuar')+'</button>';
+}
+function openPaymentForCustomer(){
+ if(!chargeClientKey)return;const c=clientGroups().find(x=>x.key===chargeClientKey);if(!c)return;
+ const qty=c.orders.reduce((a,o)=>a+total(o),0);el('paymentCustomerInfo').innerHTML='<b>'+(langIsEnglish()?'Customer':'Cliente')+':</b> '+c.name+'<br><b>'+(langIsEnglish()?'Tamale quantity':'Cantidad de tamales')+':</b> '+qty;
+ el('pricePerDozen').value='38';el('paymentBox').style.display='none';el('amountReceived').value='';el('changeResult').textContent='';el('chargeModal').classList.remove('show');el('paymentModal').classList.add('show');setTimeout(()=>el('pricePerDozen').focus(),50);
+}
+function applyChargePrice(){
+ const price=Number(el('pricePerDozen').value);if(!Number.isFinite(price)||price<0){el('pricePerDozen').focus();return;}
+ const c=clientGroups().find(x=>x.key===chargeClientKey);if(!c)return;const qty=c.orders.reduce((a,o)=>a+total(o),0);chargeTotal=qty/12*price;
+ el('paymentTotal').textContent=money(chargeTotal);el('paymentBox').style.display='block';el('amountReceived').focus();updateChange();
+}
+function updateChange(){
+ if(!el('paymentBox')||el('paymentBox').style.display==='none')return;const received=Number(el('amountReceived').value);if(!Number.isFinite(received)||el('amountReceived').value===''){el('changeResult').textContent='';return;}
+ const diff=received-chargeTotal;const en=langIsEnglish();el('changeResult').textContent=diff>=0?((en?'Change':'Cambio')+': $'+money(diff)):((en?'Amount due':'Falta dinero')+': $'+money(Math.abs(diff)));
+}
+function confirmCharge(){
+ if(!chargeClientKey)return;const received=Number(el('amountReceived').value);if(!Number.isFinite(received)){el('amountReceived').focus();return;}if(received<chargeTotal){updateChange();return;}
+ let paymentStored=false;
+ orders.forEach(o=>{if((o.phone||o.name).trim().toLowerCase()===chargeClientKey){o.paid=true;o.delivered=true;if(!paymentStored){o.paymentTotal=Number(received.toFixed(2));o.cashReceivedTotal=Number(received.toFixed(2));paymentStored=true;}else{o.paymentTotal=0;o.cashReceivedTotal=0;}}});save();closePayment();render();alert(langIsEnglish()?'Payment completed ✓':'Cobro realizado ✓');
+}
+document.querySelectorAll('#pricePerDozen,#amountReceived').forEach(input=>{input.addEventListener('focus',()=>{input.select();});});
+function updateSeasonResetLanguage(){
+ const en=langIsEnglish();
+ const set=(id,txt)=>{const x=el(id);if(x)x.textContent=txt;};
+ set('seasonResetTitle',en?'⚠️ New season':'⚠️ Nueva temporada');
+ set('seasonResetText',en?'When you confirm, all system records will be deleted: orders, pending orders, modification requests, trash records, and SMS records. The counters will return to zero.':'Al confirmar se eliminarán todos los registros del sistema: órdenes, pedidos pendientes, modificaciones, papelera y registros de SMS. Los contadores volverán a cero.');
+ set('seasonResetCancel',en?'Cancel':'Cancelar');
+ set('seasonResetConfirm',en?'Confirm':'Confirmar');
+}
+function openSeasonReset(){
+ updateSeasonResetLanguage();
+ el('seasonResetMsg').textContent='';
+ el('seasonResetModal').classList.add('show');
+}
+function closeSeasonReset(){el('seasonResetModal').classList.remove('show');}
+async function performSeasonReset(){
+ const en=langIsEnglish();
+ const msg=el('seasonResetMsg');
+ msg.textContent=en?'Resetting…':'Reiniciando…';
+ const btn=el('seasonResetConfirm');
+ if(btn)btn.disabled=true;
+ try{
+   const {data,error}=await supabaseClient.rpc('tamales_reset_season');
+   if(error)throw error;
+   orders=[];
+   localStorage.setItem('tamales_orders','[]');
+   publicPendingOrders=[];publicPendingIndex=0;
+   publicModificationRequests=[];publicModificationIndex=0;
+   publicPendingCount=0;publicModificationCount=0;
+   closeSeasonReset();
+   await startCloudSession(currentUser);
+   render();
+   alert(en?'New season started. All records were deleted and counters were reset ✓':'Nueva temporada iniciada. Todos los registros fueron eliminados y los contadores volvieron a cero ✓');
+ }catch(err){
+   console.error(err);
+   msg.textContent=en?'The reset could not be completed. No changes were made.':'No se pudo completar el reinicio. No se realizaron cambios.';
+ }finally{if(btn)btn.disabled=false;}
+}
+
+async function openTrash(){
+  el('trashModal').classList.add('show');
+  el('trashDetail').innerHTML='';
+  await renderTrash();
+}
+function closeTrash(){el('trashModal').classList.remove('show');el('trashDetail').innerHTML='';}
+async function renderTrash(){
+  const box=el('trashList'); if(!box)return;
+  box.innerHTML='<p class="muted">'+(langIsEnglish()?'Loading trash…':'Cargando papelera…')+'</p>';
+  if(!currentUser){box.innerHTML='<p class="muted">'+(langIsEnglish()?'Sign in to view the trash.':'Inicia sesión para ver la papelera.')+'</p>';return;}
+  const {data,error}=await supabaseClient.from('tamales_deleted_customers').select('id,customer_name,phone,source_section,orders,deleted_at').eq('owner_user_id',currentUser.id).order('deleted_at',{ascending:false});
+  if(error){console.error(error);box.innerHTML='<p class="muted">'+(langIsEnglish()?'The trash could not be loaded.':'No se pudo cargar la papelera.')+'</p>';return;}
+  const rows=Array.isArray(data)?data:[];
+  if(!rows.length){box.innerHTML='<p class="muted">'+(langIsEnglish()?'The trash is empty.':'La papelera está vacía.')+'</p>';return;}
+  window.trashRecords=rows;
+  box.innerHTML=rows.map(r=>'<button type="button" class="card" style="width:100%;text-align:left;margin:7px 0;padding:11px;box-shadow:none;border:1px solid #eadfd7" onclick="showTrashDetail('+Number(r.id)+')"><b>'+escapeHtml(r.customer_name||'—')+'</b><span class="muted" style="margin-left:8px">'+escapeHtml(r.phone||'—')+'</span></button>').join('');
+}
+function showTrashDetail(id){
+  const r=(window.trashRecords||[]).find(x=>Number(x.id)===Number(id)); if(!r)return;
+  const en=langIsEnglish(), os=Array.isArray(r.orders)?r.orders:[];
+  const sums={pollo:0,puerco:0,rajas:0,espinacas:0,pina:0,fresa:0}; os.forEach(o=>fs.forEach(f=>sums[f]+=Number(o[f])||0));
+  const qty=fs.reduce((a,f)=>a+sums[f],0);
+  const schedule=[...new Set(os.map(o=>parseSchedule(o).label).filter(Boolean))].join('<br>')||'—';
+  const dates=[...new Set(os.map(o=>o.date).filter(Boolean))].join(', ')||'—';
+  const served=os.length>0&&os.every(o=>o.delivered===true);
+  const paid=os.length>0&&os.every(o=>o.paid===true);
+  const state=served?(en?'➜ Served':'➜ Despachado'):(en?'— Not served':'— No despachado');
+  const L=en?{info:'Customer information',name:'Name',phone:'Phone',date:'Date',schedule:'Schedule',order:'Order',total:'Total tamales',paid:'Paid',delivered:'Delivered',source:'Original section',close:'Close',restore:'Restore',delete:'Delete permanently',confirm:'Permanently delete this record? This cannot be undone.'}:{info:'Información del cliente',name:'Nombre',phone:'Teléfono',date:'Fecha',schedule:'Horario',order:'Orden',total:'Total de tamales',paid:'Pagado',delivered:'Despachado',source:'Sección original',close:'Cerrar',restore:'Restaurar',delete:'Eliminar',confirm:'¿Eliminar definitivamente este registro? Esta acción no se puede deshacer.'};
+  const flavors=fs.filter(f=>(Number(sums[f])||0)>0).map(f=>'<div style="display:flex;justify-content:space-between;padding:4px 0"><span>'+escapeHtml(names[f])+'</span><b>'+sums[f]+'</b></div>').join('')||'<span class="muted">—</span>';
+  el('trashDetail').innerHTML='<div class="card" style="margin:0;border:1px solid #eadfd7"><h3 style="margin-top:0">'+L.info+'</h3><p><b>'+L.name+':</b> '+escapeHtml(r.customer_name||'—')+'</p><p><b>'+L.phone+':</b> '+escapeHtml(r.phone||'—')+'</p><p><b>'+L.date+':</b> '+dates+'</p><p><b>'+L.schedule+':</b> '+schedule+'</p><p><b>'+L.source+':</b> '+(r.source_section==='clientes_despachados'?(en?'Served customers':'Clientes despachados'):(en?'Customers':'Clientes'))+'</p><div style="margin-top:10px"><b>'+L.order+':</b><div style="margin-top:6px">'+flavors+'</div><hr><b>'+L.total+': '+qty+'</b></div><p><b>'+L.paid+':</b> '+(paid?'✓':'—')+' &nbsp; <b>'+L.delivered+':</b> '+state+'</p><div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button type="button" onclick="closeTrash()">'+L.close+'</button><button type="button" class="primary" onclick="restoreTrash('+Number(r.id)+')">↩️ '+L.restore+'</button><button type="button" class="primary" onclick="permanentlyDeleteTrash('+Number(r.id)+')">🗑️ '+L.delete+'</button></div></div>';
+}
+async function restoreTrash(id){
+  const en=langIsEnglish();
+  if(!confirm(en?'Restore this customer to the table where it was deleted from?':'¿Restaurar este cliente en la tabla de donde fue eliminado?'))return;
+  const {data,error}=await supabaseClient.rpc('tamales_restore_customer',{p_archive_id:id});
+  if(error||data!==true){console.error(error);alert(en?'The customer could not be restored.':'No se pudo restaurar el cliente.');return;}
+  await startCloudSession(currentUser);
+  el('trashDetail').innerHTML='';
+  await renderTrash();
+  alert(en?'Customer restored ✓':'Cliente restaurado ✓');
+}
+async function permanentlyDeleteTrash(id){
+  const en=langIsEnglish();
+  if(!confirm(en?'Permanently delete this record? This cannot be undone.':'¿Eliminar definitivamente este registro? Esta acción no se puede deshacer.'))return;
+  const {data,error}=await supabaseClient.rpc('tamales_permanently_delete_customer',{p_archive_id:id});
+  if(error||data!==true){console.error(error);alert(en?'The record could not be deleted.':'No se pudo eliminar el registro.');return;}
+  el('trashDetail').innerHTML='';
+  await renderTrash();
+  alert(en?'Record permanently deleted ✓':'Registro eliminado definitivamente ✓');
+}
+async function archiveAndDeleteCustomers(keys){
+  const selected=clientGroups().filter(c=>keys.includes(c.key)); if(!selected.length)return;
+  const en=langIsEnglish();
+  for(const c of selected){
+    const served=c.orders.length>0&&c.orders.every(o=>o.paid===true&&o.delivered===true);
+    const source=served?'clientes_despachados':'clientes';
+    const {error}=await supabaseClient.rpc('tamales_archive_customer',{p_customer_name:c.name||'',p_phone:c.phone||'',p_source_section:source,p_orders:c.orders});
+    if(error){console.error(error);alert(en?'The customer could not be archived. No deletion was made for that customer.':'No se pudo guardar el cliente en la papelera. No se eliminó ese cliente.');return false;}
+  }
+  // Synchronize local state after the archive RPC. Restarting the cloud session here
+  // could re-upload stale local orders when the cloud becomes empty.
+  const selectedKeys=new Set(selected.map(c=>c.key));
+  orders=orders.filter(o=>!selectedKeys.has((o.phone||o.name).trim().toLowerCase()));
+  localStorage.setItem('tamales_orders',JSON.stringify(orders));
+  await cloudSave();
+  return true;
+}
+async function deleteSelectedClientsNow(){
+ const keys=window.pendingDeleteKeys||[]; if(!keys.length)return;
+ const ok=await archiveAndDeleteCustomers(keys); if(!ok)return;
+ closeDeleteClient();render();alert(langIsEnglish()?'Customer(s) moved to trash ✓':'Cliente(s) enviados a la papelera ✓');window.pendingDeleteKeys=[];
+}
+async function deleteOneClientNow(encodedKey){
+ const key=decodeURIComponent(String(encodedKey||''));
+ // Re-read the current groups immediately before deleting so the final row is not lost
+ // if the table was re-rendered after the selection was made.
+ const currentGroups=clientGroups();
+ const c=currentGroups.find(x=>String(x.key)===String(key)); if(!c)return;
+ const liveKey=c.key;
+ const ok=await archiveAndDeleteCustomers([liveKey]); if(!ok)return;
+ closeDeleteClient();render();alert(langIsEnglish()?'Customer moved to trash ✓':'Cliente enviado a la papelera ✓');
+}
+
+render();
+initCloud();
+</script>
+<script>
+(function(){
+  // Safe bilingual message layer: does not modify authentication/session code.
+  const originalAlert=window.alert;
+  const originalConfirm=window.confirm;
+  const msg={
+    es:{
+      enterTimes:'Escribe la hora desde y hasta.',
+      endAfter:'La hora final debe ser después de la inicial.',
+      addTamale:'Agrega al menos un tamal.',
+      deleteConfirm:(n)=>'¿Eliminar definitivamente a '+n+' y todos sus pedidos?',
+      deleted:'Cliente eliminado ✓',
+      updated:'Información del pedido actualizada ✓',
+      selectCustomer:'Selecciona un cliente:',
+      deleteSearch:'Escribe el nombre o número de teléfono del cliente que deseas eliminar.'
+    },
+    en:{
+      enterTimes:'Enter the start and end times.',
+      endAfter:'The end time must be after the start time.',
+      addTamale:'Add at least one tamale.',
+      deleteConfirm:(n)=>'Permanently delete '+n+' and all of their orders?',
+      deleted:'Customer deleted ✓',
+      updated:'Order information updated ✓',
+      selectCustomer:'Select a customer:',
+      deleteSearch:'Enter the name or phone number of the customer you want to delete.'
+    }
+  };
+  function T(){return (localStorage.getItem('tamales_language')||'es')==='en'?msg.en:msg.es;}
+  window.__tamalesMsg=msg; window.__tamalesT=T;
+  window.alert=function(text){
+    const t=T(), map={
+      'Escribe la hora desde y hasta.':t.enterTimes,
+      'La hora final debe ser después de la inicial.':t.endAfter,
+      'Agrega al menos un tamal.':t.addTamale,
+      'Selecciona al menos un cliente.':T().selectCustomer,
+      'Cliente eliminado ✓':t.deleted,
+      'Información del pedido actualizada ✓':t.updated,
+      'Pedido y cliente guardados ✓':T()===msg.en?'Order and customer saved ✓':'Pedido y cliente guardados ✓',
+      'Este cliente ya está pagado.':T()===msg.en?'This customer has already been paid.':'Este cliente ya está pagado.'
+    };
+    return originalAlert.call(window,map[text]||text);
+  };
+  window.confirm=function(text){
+    const t=T();
+    if(typeof text==='string' && text.startsWith('¿Eliminar definitivamente a ')) {
+      const m=text.match(/^¿Eliminar definitivamente a (.+) y todos sus pedidos\?$/);
+      if(m) text=t.deleteConfirm(m[1]);
+      const mm=text.match(/^¿Eliminar definitivamente a (\d+) cliente\(s\) y todos sus pedidos\?\n\n([\s\S]*)$/);
+      if(mm) text=t===msg.en?'Permanently delete '+mm[1]+' customer(s) and all of their orders?\n\n'+mm[2]:text;
+    }
+    return originalConfirm.call(window,text);
+  };
+})();
+</script>
+<script>
+(function(){
+  const picker=document.getElementById('languagePicker');
+  const main=document.getElementById('languageMain');
+  if(!picker||!main)return;
+
+  let lang=localStorage.getItem('tamales_language')||'es';
+  let applying=false;
+
+  const navES=['Inicio','Clientes','Desglose por hora','Desglose por docena','Clientes despachados'];
+  const navEN=['Home','Customers','Hourly breakdown','Dozen breakdown','Served customers'];
+
+  const pairs={
+    'Control de Tamales':'Tamales Control',
+    'Inicio':'Home','Clientes':'Customers','Resumen':'Summary',
+    'Pedidos':'Orders','Tamales':'Tamales','Entregados':'Delivered','Pendientes':'Pending',
+    'Buscar cliente':'Search customer','Buscar':'Search','Nombre o teléfono':'Name or phone',
+    'Nuevo pedido':'New order','＋ Nuevo pedido':'＋ New order','Cobrar':'Charge','💵 Cobrar':'💵 Charge','Cobrar pedido':'Charge order','Buscar cliente':'Search customer','Continuar':'Continue','Precio por docena':'Price per dozen','Aplicar':'Apply','Total':'Total','Monto recibido':'Amount received','Cambio':'Change','Falta dinero':'Amount due','Confirmar cobro':'Confirm payment','Cobro realizado ✓':'Payment completed ✓',
+    'Desglose por hora':'Hourly breakdown','Desglose por docena':'Dozen breakdown','Clientes despachados':'Served customers','Completados':'Served customers','Amount paid':'Amount paid','Cantidad pagada':'Amount paid',
+    'Desglose por docenas':'Dozen breakdown',
+    'Modificar pedido':'Edit order','✎ Modificar pedido':'✎ Edit order',
+    'Eliminar cliente':'Delete customer','− Eliminar cliente':'− Delete customer',
+    'Modificar':'Edit','Eliminar':'Delete','Papelera':'Trash','Restaurar':'Restore','Eliminar definitivamente':'Delete permanently',
+    'Nombre':'Name','Cliente':'Name','Teléfono':'Phone','Horario':'Schedule',
+    'Horario de entrega':'Delivery schedule','Fecha':'Date','Desde':'From','Hasta':'To',
+    'Pollo':'Chicken','Puerco':'Pork','Rajas':'Rajas','Espinacas':'Spinach','Piña':'Pineapple','Fresa':'Strawberry',
+    'Total tamales':'Total tamales','Estado':'Status','Pagado':'Paid',
+    'N.º cliente':'#Customer','Presentación':'Presentation','Guardar':'Save','Guardar pedido':'Save order','Cancelar':'Cancel','Aceptar':'OK',
+    'Cliente ya registrado':'Customer already registered','Agregar de todos modos':'Add anyway',
+    'Cuenta':'Account','Salir':'Sign out','Correo electrónico':'Email','Contraseña':'Password',
+    'Iniciar sesión':'Sign in','Crear cuenta':'Create account','Crear cuenta nueva':'Create new account',
+    'Ya tengo una cuenta':'I already have an account','¿Olvidaste tu contraseña?':'Forgot your password?',
+    'Nueva contraseña':'New password','Repite la contraseña':'Repeat password','Guardar nueva contraseña':'Save new password',
+    'Cliente no registrado':'Customer not found','Cliente encontrado':'Customer found',
+    'Selecciona un cliente':'Select a customer','Selecciona la fecha.':'Select a date.',
+    'Escribe el nombre del cliente.':'Enter the customer name.',
+    'Escribe un nombre o teléfono.':'Enter a name or phone number.',
+    'Escribe primero tu correo electrónico.':'Enter your email address first.',
+    'Escribe la hora desde y hasta.':'Enter the start and end times.',
+    'Escribe el nombre o número de teléfono del cliente que deseas modificar.':'Enter the name or phone number of the customer you want to edit.',
+    'Escribe el nombre del cliente que deseas eliminar.':'Enter the name of the customer you want to delete.',
+    'Datos del cliente':'Customer information','N.º de cliente:':'#Customer:','Cliente:':'Customer:','Teléfono:':'Phone:',
+    'Pedidos registrados:':'Registered orders:','Total de tamales:':'Total tamales:',
+    '⚠ Al eliminarlo también se eliminarán todos sus pedidos.':'⚠ Deleting this customer will also delete all of their orders.',
+    'Eliminar definitivamente':'Delete permanently','Continuar':'Continue',
+    'Encontré varios clientes:':'I found several customers:','selecciona uno o más para eliminar.':'select one or more to delete.',
+    'Sin teléfono':'No phone','Selecciona al menos un cliente.':'Select at least one customer.',
+    'El cliente que buscas no está registrado.':'The customer you are looking for is not registered.',
+    'Información del cliente actualizada ✓':'Customer information updated ✓',
+    'Información del pedido actualizada ✓':'Order information updated ✓',
+    'Pedido y cliente guardados ✓':'Order and customer saved ✓',
+    'Cliente eliminado ✓':'Customer deleted ✓','Cliente(s) eliminado(s) ✓':'Customer(s) deleted ✓',
+    'Selecciona al menos un cliente.':'Select at least one customer.',
+    'coincide por nombre':'matches by name','coincide por teléfono':'matches by phone',
+    'Existe uno o más clientes registrados con ese nombre o número de teléfono.':'One or more customers are already registered with that name or phone number.',
+    'Clientes encontrados:':'Customers found:','¿Deseas agregar este pedido de todos modos?':'Do you want to add this order anyway?',
+    'Agrega al menos un tamal.':'Add at least one tamale.',
+    'La hora final debe ser después de la inicial.':'The end time must be after the start time.',
+    'La contraseña debe tener al menos 6 caracteres.':'The password must be at least 6 characters.',
+    'Las contraseñas no coinciden.':'The passwords do not match.',
+    'Conectando…':'Connecting…','Guardando…':'Saving…','Preparando recuperación de contraseña…':'Preparing password recovery…',
+    'Enviando correo de recuperación…':'Sending recovery email…','Error al sincronizar:':'Sync error:',
+    'No se pudo iniciar la sesión.':'Could not sign in.','Sin horario':'No schedule',
+    'Docena':'Dozen','1/2 docena':'1/2 dozen','Sueltos':'Loose',
+    'TOTALES FINALES':'FINAL TOTALS','TOTAL FINAL':'FINAL TOTAL',
+    'Cloud':'Cloud'
+  };
+
+  function translateText(t){
+    const k=t.trim();
+    return Object.prototype.hasOwnProperty.call(pairs,k)?pairs[k]:null;
+  }
+
+  function remember(el){
+    if(el.dataset.langEs!==undefined)return;
+    const t=el.textContent.trim();
+    const en=translateText(t);
+    if(en!==null){el.dataset.langEs=t;el.dataset.langEn=en;}
+  }
+
+  const reversePairs=Object.fromEntries(Object.entries(pairs).map(([es,en])=>[en,es]));
+
+  function translateDirectTextNodes(el){
+    if(!el || el.closest('#languagePicker') || el.closest('td'))return;
+    for(const node of Array.from(el.childNodes)){
+      if(node.nodeType!==Node.TEXT_NODE)continue;
+      const raw=node.nodeValue||'', trimmed=raw.trim();
+      if(!trimmed)continue;
+      const replacement=lang==='en'?(pairs[trimmed]||trimmed):(reversePairs[trimmed]||trimmed);
+      if(replacement!==trimmed){
+        const start=raw.indexOf(trimmed), end=start+trimmed.length;
+        node.nodeValue=raw.slice(0,start)+replacement+raw.slice(end);
+      }
+    }
+  }
+
+  function scan(root=document){
+    root.querySelectorAll('body *').forEach(el=>{
+      if(el.closest('#languagePicker'))return;
+      if(el.closest('td'))return; // customer/order data stays unchanged
+      if(el.matches('input,textarea,select')){
+        const p=el.getAttribute('placeholder');
+        if(p && el.dataset.langPlaceholderEs===undefined){
+          const en=translateText(p);
+          if(en!==null){el.dataset.langPlaceholderEs=p;el.dataset.langPlaceholderEn=en;}
+        }
+        return;
+      }
+      if(el.matches('th'))remember(el);
+      if(el.children.length===0)remember(el);
+      translateDirectTextNodes(el);
+      const aria=el.getAttribute('aria-label');
+      if(aria && el.dataset.langAriaEs===undefined){
+        const en=translateText(aria);
+        if(en!==null){el.dataset.langAriaEs=aria;el.dataset.langAriaEn=en;}
+      }
+    });
+  }
+
+  function apply(){
+    applying=true;
+    scan();
+    document.querySelectorAll('nav button').forEach((btn,i)=>{
+      if(i<navES.length)btn.textContent=lang==='en'?navEN[i]:navES[i];
+    });
+    document.querySelectorAll('[data-lang-es]').forEach(el=>{
+      if(el.closest('#languagePicker')||el.closest('tbody'))return;
+      el.textContent=lang==='en'?el.dataset.langEn:el.dataset.langEs;
+    });
+    document.querySelectorAll('[data-lang-placeholder-es]').forEach(el=>{
+      el.placeholder=lang==='en'?el.dataset.langPlaceholderEn:el.dataset.langPlaceholderEs;
+    });
+    document.querySelectorAll('[data-lang-aria-es]').forEach(el=>{
+      el.setAttribute('aria-label',lang==='en'?el.dataset.langAriaEn:el.dataset.langAriaEs);
+    });
+    const modalTexts={
+      orderModalTitle:lang==='en'?'New order':'Nuevo pedido',
+      chargeTitle:lang==='en'?'Charge':'Cobrar', chargeInstruction:lang==='en'?'Enter the customer name or phone number to find the order.':'Escribe el nombre o teléfono del cliente para buscar su pedido.', chargeSearchBtn:lang==='en'?'Search customer':'Buscar cliente', pricePerDozenLabel:lang==='en'?'Price per dozen':'Precio por docena', applyPriceBtn:lang==='en'?'Apply':'Aplicar', paymentTitle:lang==='en'?'Charge order':'Cobrar pedido', paymentTotalLabel:lang==='en'?'Total':'Total', receivedLabel:lang==='en'?'Amount received':'Monto recibido', confirmPaymentBtn:lang==='en'?'Confirm payment':'Confirmar cobro', chargeBtn:lang==='en'?'💵 Charge':'💵 Cobrar',
+      orderNameLabel:lang==='en'?'Name *':'Nombre *',
+      orderPhoneLabel:lang==='en'?'Phone':'Teléfono',
+      orderDateLabel:lang==='en'?'Delivery date *':'Fecha *',
+      orderScheduleLabel:lang==='en'?'Delivery schedule':'Horario de entrega',
+      orderFromLabel:lang==='en'?'From':'Desde',
+      orderToLabel:lang==='en'?'To':'Hasta',
+      orderChickenLabel:lang==='en'?'Chicken':'Pollo',
+      orderPorkLabel:lang==='en'?'Pork':'Puerco',
+      orderRajasLabel:'Rajas',
+      orderSpinachLabel:lang==='en'?'Spinach':'Espinacas',
+      orderPineappleLabel:lang==='en'?'Pineapple':'Piña',
+      orderStrawberryLabel:lang==='en'?'Strawberry':'Fresa',
+      orderSaveButton:lang==='en'?'Save order':'Guardar pedido',
+      orderCancelButton:lang==='en'?'Cancel':'Cancelar',
+      editModalTitle:lang==='en'?'Edit order':'Modificar pedido',
+      editScheduleLabel:lang==='en'?'Delivery schedule':'Horario de entrega',
+      editFromLabel:lang==='en'?'From':'Desde',
+      editToLabel:lang==='en'?'To':'Hasta',
+      editChickenLabel:lang==='en'?'Chicken':'Pollo',
+      editPorkLabel:lang==='en'?'Pork':'Puerco',
+      editRajasLabel:'Rajas',
+      editSpinachLabel:lang==='en'?'Spinach':'Espinacas',
+      editPineappleLabel:lang==='en'?'Pineapple':'Piña',
+      editStrawberryLabel:lang==='en'?'Strawberry':'Fresa',
+      editCancelButton:lang==='en'?'Cancel':'Cancelar',
+      editAcceptButton:lang==='en'?'Accept and update':'Aceptar y actualizar',
+      deleteClientTitle:lang==='en'?'Delete customer':'Eliminar cliente',
+      deleteClientInstruction:lang==='en'?'Enter the name or phone number of the customer you want to delete.':'Escribe el nombre o número de teléfono del cliente que deseas eliminar.',
+      deleteClientSearchBtn:lang==='en'?'Search customer':'Buscar cliente',
+      clientResultTitle:lang==='en'?'Customer information':'Información del cliente',
+      editClientInstruction:lang==='en'?'Enter the name or phone number of the customer you want to edit.':'Escribe el nombre o número de teléfono del cliente que deseas modificar.',
+      editClientSearchBtn:lang==='en'?'Search customer':'Buscar cliente'
+    };
+    Object.entries(modalTexts).forEach(([id,text])=>{const el=document.getElementById(id);if(el)el.textContent=text;});
+    const deleteInput=document.getElementById('deleteClientName');
+    if(deleteInput) deleteInput.placeholder=lang==='en'?'Customer name or phone number':'Nombre o teléfono del cliente';
+    const editSearch=document.getElementById('editClientSearch');
+    if(editSearch) editSearch.placeholder=lang==='en'?'Name or phone':'Nombre o teléfono';
+    const direct={
+      clientesTitle:lang==='en'?'Customers':'Clientes',
+      modifyOrderBtn:lang==='en'?'✎ Edit order':'✎ Modificar pedido',
+      deleteClientBtn:lang==='en'?'− Delete customer':'− Eliminar cliente',
+      trashBtnLabel:lang==='en'?'Trash':'Papelera',
+      trashHelp:lang==='en'?'Here you can find customers you deleted from the main tables.':'Aquí se conservan los clientes que eliminaste de las tablas principales.'
+    };
+    Object.entries(direct).forEach(([id,text])=>{const el=document.getElementById(id);if(el)el.textContent=text;});
+    main.textContent=lang==='en'?'🇺🇸 EN':'🇪🇸 ES';
+    main.setAttribute('aria-label',lang==='en'?'Change language':'Cambiar idioma');
+    document.documentElement.lang=lang==='en'?'en':'es';
+    applying=false;
+  }
+
+  scan();
+  apply();
+
+  // No observar todo el body: render() reemplaza mucho DOM y un MutationObserver aquí
+  // puede crear ciclos de traducción, ralentizar la app y dejar botones sin respuesta.
+
+  function setLang(next){
+    lang=next==='en'?'en':'es';
+    localStorage.setItem('tamales_language',lang);
+    main.setAttribute('aria-expanded','false');
+    apply();
+    if(typeof renderCompleted==='function') renderCompleted();
+    if(typeof updateSeasonResetLanguage==='function') updateSeasonResetLanguage();
+  }
+  main.addEventListener('click',()=>{ setLang(lang==='es'?'en':'es'); });
+})();
+</script>
+<div class="modal" id="cashModal"><div class="box" style="max-width:360px">
+<div class="head"><h2 id="cashTitle">Total efectivo</h2><button class="close" type="button" onclick="closeCash()">×</button></div>
+<div class="card" style="margin:0"><div id="cashTotalLabel" class="muted">Total efectivo</div>
+<div id="cashTotal" class="stat" style="font-size:28px">$0</div>
+<div style="margin-top:14px" class="muted" id="cashOrdersLabel">Pedidos cobrados</div>
+<div id="cashOrders" class="stat" style="font-size:24px">0</div></div>
+<div style="display:flex;justify-content:flex-end;margin-top:12px"><button type="button" class="primary" onclick="closeCash()">Aceptar</button></div>
+</div></div><script>
+(function(){
+ function applyModificationPaymentLanguage(){const en=document.documentElement.lang==='en';const set=(id,a,b)=>{const x=document.getElementById(id);if(x)x.textContent=en?a:b;};set('modPaymentTitle','Additional payment','Cobro adicional');set('modPaymentInfo','This order was already delivered. The modified order has an outstanding balance.','Esta orden ya fue entregada. La orden modificada tiene una cantidad pendiente.');set('modPaymentDueLabel','Amount due','Cantidad faltante');set('modReceivedLabel','Amount received','Dinero recibido');set('modPaymentBtn','Charge','Cobrar');const i=document.getElementById('modAmountReceived');if(i)i.placeholder=en?'0.00':'0.00';}
+ applyModificationPaymentLanguage();
+ new MutationObserver(applyModificationPaymentLanguage).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+ document.addEventListener('click',e=>{if(e.target&&e.target.id==='languageMain')setTimeout(applyModificationPaymentLanguage,0);});
+})();
+</script>
+</body></html>
