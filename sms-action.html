@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ABI’S TAMALES</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#241b17;background:#f7f2ed}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(180deg,#fffaf6 0,#f7f2ed 100%)}
+.wrap{width:min(680px,calc(100% - 28px));margin:0 auto;padding:28px 0 42px}.brand{text-align:center;font-weight:900;letter-spacing:.08em;font-size:24px;margin:6px 0 22px}.card{background:#fff;border:1px solid #eadfd7;border-radius:22px;padding:24px;box-shadow:0 12px 35px rgba(70,45,30,.08)}
+h1{font-size:25px;margin:0 0 9px;text-align:center}.sub{color:#71655e;text-align:center;line-height:1.5;margin:0 0 22px}.hidden{display:none!important}.result{text-align:center}.icon{font-size:48px;line-height:1;margin:2px 0 14px}.result h2{margin:0 0 9px;font-size:24px}.result p{color:#655b55;line-height:1.55;margin:0 auto;max-width:520px}.small{font-size:13px;color:#80746d;margin-top:18px;text-align:center}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:flex;flex-direction:column;gap:6px}.full{grid-column:1/-1}label{font-weight:700;font-size:14px}input,select,textarea{width:100%;border:1px solid #d9cec6;border-radius:12px;padding:12px 13px;background:#fff;font:inherit;color:#241b17;outline:none}input:focus,select:focus,textarea:focus{border-color:#8b6a58;box-shadow:0 0 0 3px rgba(139,106,88,.12)}input[readonly],input:disabled{background:#f5f1ee;color:#625851}textarea{min-height:86px;resize:vertical}.flavors{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:4px}.flavor{background:#faf7f4;border:1px solid #eee3dc;border-radius:13px;padding:10px}.flavor input{margin-top:6px;text-align:center}.actions{margin-top:19px}.primary{width:100%;border:0;border-radius:13px;padding:13px 16px;background:#2f211a;color:#fff;font-weight:800;font-size:16px;cursor:pointer}.primary:disabled{opacity:.55;cursor:not-allowed}.secondary{margin-top:10px;background:#fff;color:#2f211a;border:1px solid #d8cbc2}.msg{min-height:21px;text-align:center;margin-top:11px;color:#9a3b2f;font-size:14px;line-height:1.4}.summary{background:#faf7f4;border:1px solid #eee3dc;border-radius:14px;padding:13px;margin:17px 0}.summary strong{display:block;margin-bottom:5px}.schedule-note{font-size:12px;color:#7b7069;margin-top:5px}.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;vertical-align:-3px;margin-right:7px;animation:rot .7s linear infinite}@keyframes rot{to{transform:rotate(360deg)}}
+@media(max-width:520px){.wrap{width:min(100% - 18px,680px);padding-top:18px}.card{padding:18px;border-radius:18px}.formgrid,.flavors{grid-template-columns:1fr}.full{grid-column:auto}.brand{font-size:21px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">🫔 ABI’S TAMALES 🫔</div>
+  <main class="card">
+    <section id="loading" class="result">
+      <div class="icon">⏳</div><h2>Cargando…</h2><p>Estamos preparando tu información.</p>
+    </section>
+
+    <section id="result" class="result hidden">
+      <div id="resultIcon" class="icon">✓</div>
+      <h2 id="resultTitle"></h2>
+      <p id="resultText"></p>
+      <button id="resultBack" class="primary secondary hidden" type="button" onclick="goBack()">Regresar</button>
+    </section>
+
+    <section id="modify" class="hidden">
+      <h1>Modificar mi orden</h1>
+      <p class="sub">Revisa la información de tu orden y realiza los cambios que necesitas.</p>
+      <div class="summary">
+        <strong>Información del cliente</strong>
+        <div id="customerSummary"></div>
+      </div>
+      <form id="modifyForm">
+        <div class="formgrid">
+          <div class="field"><label for="name">Nombre</label><input id="name" name="name" readonly></div>
+          <div class="field"><label for="phone">Teléfono</label><input id="phone" name="phone" readonly></div>
+          <div class="field"><label for="date">Fecha</label><input id="date" name="date" readonly></div>
+          <div class="field"><label for="start">Horario</label>
+            <select id="start" name="start" required>
+              <option value="08:00">8 a 10</option><option value="10:00">10 a 12</option><option value="12:00">12 a 2</option><option value="14:00">2 a 4</option><option value="16:00">4 a 6</option><option value="18:00">6 a 8</option>
+            </select>
+            <div class="schedule-note">El horario se conserva en los bloques de atención disponibles.</div>
+          </div>
+          <div class="field"><label for="end">Hasta</label>
+            <select id="end" name="end" required>
+              <option value="10:00">10:00</option><option value="12:00">12:00</option><option value="14:00">2:00</option><option value="16:00">4:00</option><option value="18:00">6:00</option><option value="20:00">8:00</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label>Sabores y cantidades</label>
+            <div class="flavors">
+              <div class="flavor"><label for="pollo">Pollo</label><input id="pollo" name="pollo" type="number" min="0" step="1" inputmode="numeric" value="0"></div>
+              <div class="flavor"><label for="puerco">Puerco</label><input id="puerco" name="puerco" type="number" min="0" step="1" inputmode="numeric" value="0"></div>
+              <div class="flavor"><label for="rajas">Rajas</label><input id="rajas" name="rajas" type="number" min="0" step="1" inputmode="numeric" value="0"></div>
+              <div class="flavor"><label for="espinacas">Espinacas</label><input id="espinacas" name="espinacas" type="number" min="0" step="1" inputmode="numeric" value="0"></div>
+              <div class="flavor"><label for="pina">Piña</label><input id="pina" name="pina" type="number" min="0" step="1" inputmode="numeric" value="0"></div>
+              <div class="flavor"><label for="fresa">Fresa</label><input id="fresa" name="fresa" type="number" min="0" step="1" inputmode="numeric" value="0"></div>
+            </div>
+          </div>
+          <div class="field full"><label for="message">Mensaje (opcional)</label><textarea id="message" name="message" maxlength="500" placeholder="Algún detalle que quieras comunicar"></textarea></div>
+        </div>
+        <div id="formMsg" class="msg"></div>
+        <div class="actions"><button id="sendBtn" class="primary" type="submit">Enviar solicitud de modificación</button></div>
+      </form>
+    </section>
+  </main>
+  <div class="small">ABI’S TAMALES · Este enlace es personal y temporal.</div>
+</div>
+<script>
+const API='https://yuddjqscdzbkujmdteyz.supabase.co/functions/v1/sms-action';
+const params=new URLSearchParams(location.search);
+const token=params.get('token')||'';
+const result=params.get('result')||'';
+const $=id=>document.getElementById(id);
+const resultMap={
+ accepted:{icon:'✅',title:'Orden confirmada con éxito',text:'Orden confirmada con éxito'},
+ rejected:{icon:'❌',title:'Orden rechazada',text:'Orden rechazada'},
+ 'already-processed':{icon:'ℹ️',title:'Orden ya procesada',text:'Esta solicitud ya fue procesada. No es necesario realizar ninguna otra acción.'},
+ 'invalid-link':{icon:'⚠️',title:'Enlace no válido',text:'Este enlace no es válido, ya expiró o ya fue utilizado. Solicita un nuevo enlace si necesitas realizar una acción.'},
+ 'order-not-available':{icon:'⚠️',title:'Orden no disponible',text:'Esta orden ya no está disponible para modificación. La orden permanece sin cambios.'},
+ 'modification-sent':{icon:'📨',title:'Solicitud enviada',text:'Tu solicitud de modificación se ha enviado correctamente. Revisaremos los cambios y te enviaremos un mensaje de texto con la respuesta.'},
+ 'modification-approved':{icon:'✅',title:'Modificación realizada',text:'Modificación realizada'},
+ 'modification-rejected':{icon:'❌',title:'Se rechazó la modificación',text:'Se rechazó la modificación'},
+ error:{icon:'⚠️',title:'Ocurrió un problema',text:'No pudimos completar la solicitud. Intenta nuevamente con un enlace válido.'},
+ unavailable:{icon:'⚠️',title:'Acción no disponible',text:'Esta acción no está disponible en este momento.'}
+};
+function showResult(key){
+ const r=resultMap[key]||resultMap.error;
+ $('loading').classList.add('hidden');$('modify').classList.add('hidden');$('result').classList.remove('hidden');
+ $('resultIcon').textContent=r.icon;$('resultTitle').textContent=r.title;$('resultText').textContent=r.text;
+ if(key==='accepted'||key==='rejected'||key==='modification-approved'||key==='modification-rejected')$('resultBack').classList.add('hidden');
+ else $('resultBack').classList.add('hidden');
+}
+function goBack(){history.back()}
+function setTime(start,end){
+ const pairs=[['08:00','10:00'],['10:00','12:00'],['12:00','14:00'],['14:00','16:00'],['16:00','18:00'],['18:00','20:00']];
+ let i=pairs.findIndex(p=>p[0]===String(start).slice(0,5)&&p[1]===String(end).slice(0,5));
+ if(i<0)i=0;$('start').value=pairs[i][0];$('end').value=pairs[i][1];
+}
+$('start').addEventListener('change',()=>{const map={'08:00':'10:00','10:00':'12:00','12:00':'14:00','14:00':'16:00','16:00':'18:00','18:00':'20:00'};$('end').value=map[$('start').value]||'10:00'});
+async function loadOrder(){
+ if(result){showResult(result);return;}
+ if(!token){showResult('invalid-link');return;}
+ try{
+   const r=await fetch(API+'?token='+encodeURIComponent(token)+'&format=json',{headers:{'Accept':'application/json'},cache:'no-store',redirect:'follow'});
+   const ct=r.headers.get('content-type')||'';
+   if(ct.includes('application/json')){
+     const data=await r.json().catch(()=>null);
+     if(data?.ok && data?.order){
+       const publicUrl='https://control-tamales.netlify.app/abis_tamales_final';
+       location.replace(publicUrl+'?sms_token='+encodeURIComponent(token));
+       return;
+     }
+     showResult(data?.error==='ORDER_NOT_AVAILABLE'?'order-not-available':'error');return;
+   }
+   const o={};
+   showResult('error');return;
+ }catch(e){console.error(e);showResult('error')}
+}
+$('modifyForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const msg=$('formMsg'),btn=$('sendBtn');msg.textContent='';
+ const total=['pollo','puerco','rajas','espinacas','pina','fresa'].reduce((s,k)=>s+Math.max(0,parseInt($(k).value||'0',10)||0),0);
+ if(total<=0){msg.textContent='Agrega al menos un tamal a la orden.';return;}
+ if(!token){showResult('invalid-link');return;}
+ btn.disabled=true;btn.innerHTML='<span class="spin"></span>Enviando…';
+ try{
+   const fd=new FormData(e.currentTarget);
+   const r=await fetch(API+'?token='+encodeURIComponent(token),{method:'POST',body:fd,redirect:'follow',cache:'no-store'});
+   if(r.redirected){location.replace(r.url);return;}
+   const text=await r.text();
+   if(r.ok){location.replace(API+'?token='+encodeURIComponent(token));return;}
+   msg.textContent='No pudimos enviar la solicitud. Intenta nuevamente.';console.error(text);
+ }catch(err){console.error(err);msg.textContent='No pudimos enviar la solicitud. Revisa tu conexión e intenta nuevamente.'}
+ finally{btn.disabled=false;btn.textContent='Enviar solicitud de modificación'}
+});
+loadOrder();
+</script>
+</body>
+</html>
