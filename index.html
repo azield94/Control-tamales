@@ -166,9 +166,9 @@ const PHONE_COUNTRIES=[
 ];
 function phoneDigits(v){return String(v??'').replace(/\D/g,'')}
 function phoneCountryFromStored(v){const d=phoneDigits(v);if(d.length===10)return PHONE_COUNTRIES[0];if(d.startsWith('1')&&d.length===11)return PHONE_COUNTRIES[0];const hit=PHONE_COUNTRIES.slice().sort((a,b)=>b.code.length-a.code.length).find(c=>d.startsWith(c.code.replace('+','')));return hit||PHONE_COUNTRIES[0]}
-function phoneLocalFromStored(v){const d=phoneDigits(v),c=phoneCountryFromStored(v),cd=c.code.replace('+','');return d.startsWith(cd)&&d.length>cd.length?d.slice(cd.length):d}
+function phoneLocalFromStored(v){const d=phoneDigits(v),c=phoneCountryFromStored(v),cd=c.code.replace('+','');let local=d.startsWith(cd)&&d.length>cd.length?d.slice(cd.length):d;if(c.code==='+52'&&local.length===12&&local.startsWith('52'))local=local.slice(2);return local}
 function populatePhoneCountries(selectId){const s=document.getElementById(selectId);if(!s)return;s.innerHTML=PHONE_COUNTRIES.map(c=>'<option value=\"'+c.code+'\">'+c.flag+' '+c.name+' '+c.code+'</option>').join('')}
-function canonicalPhone(selectId,inputId){const s=document.getElementById(selectId),i=document.getElementById(inputId);const code=String(s?.value||'+1').replace(/\D/g,'');let local=phoneDigits(i?.value||'');if(code==='1'&&local.length===11&&local.startsWith('1'))local=local.slice(1);if(local.length<7)return '';return '+'+code+local}
+function canonicalPhone(selectId,inputId){const s=document.getElementById(selectId),i=document.getElementById(inputId);const code=String(s?.value||'+1').replace(/\D/g,'');let local=phoneDigits(i?.value||'');if(code==='1'&&local.length===11&&local.startsWith('1'))local=local.slice(1);if(code==='52'&&local.length===12&&local.startsWith('52'))local=local.slice(2);if(local.length<7)return '';return '+'+code+local}
 function setPhoneFields(selectId,inputId,stored){populatePhoneCountries(selectId);const c=phoneCountryFromStored(stored);const s=document.getElementById(selectId),i=document.getElementById(inputId);if(s)s.value=c.code;if(i)i.value=phoneLocalFromStored(stored)}
 function phoneSearchMatch(a,b){const x=phoneDigits(a),y=phoneDigits(b);if(!x||!y)return false;if(x===y)return true;const lx=x.length>=10?x.slice(-10):x,ly=y.length>=10?y.slice(-10):y;return lx===ly||x.includes(y)||y.includes(x)}
 
