@@ -256,7 +256,7 @@ function friendlyRpcError(err,context){
 }
 function existingCard(o,selectable=true){
  const names=en?{pollo:'Chicken',puerco:'Pork',rajas:'Rajas',espinacas:'Spinach',pina:'Pineapple',fresa:'Strawberry'}:{pollo:'Pollo',puerco:'Puerco',rajas:'Rajas',espinacas:'Espinacas',pina:'Piña',fresa:'Fresa'};
- const qty=fs.reduce((a,f)=>a+(Number(o[f])||0),0);const flavors=fs.filter(f=>Number(o[f])>0).map(f=>names[f]+': '+formatDozens(o[f])).join(' · ');const statusText=o.status==='confirmed'?(en?'Confirmed':'Confirmada'):(en?'Waiting for confirmation':'Esperando confirmación');
+ const qty=fs.reduce((a,f)=>a+(Number(o[f])||0),0);const flavors=fs.filter(f=>Number(o[f])>0).map(f=>names[f]+': '+Math.round(Number(o[f])||0)+' tamales').join(' · ');const statusText=o.status==='confirmed'?(en?'Confirmed':'Confirmada'):(en?'Waiting for confirmation':'Esperando confirmación');
  return '<div class="card" style="margin:0 0 10px;border:1px solid #eadfd7"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+(en?'Order #':'Orden #')+o.id+'</b><span class="muted">'+statusText+'</span></div><div style="margin-top:7px"><b>'+(en?'Customer':'Nombre')+':</b> '+escapeHtml(o.name)+' · '+fmt(o.start_time)+' – '+fmt(o.end_time)+' · '+qty+' '+(en?'tamales':'tamales')+'</div><div class="muted" style="margin-top:5px">'+escapeHtml(flavors)+'</div>'+ (selectable?'<button type="button" class="primary" style="margin-top:10px" onclick="selectExisting('+o.id+')">'+(en?'Select this order':'Seleccionar esta orden')+'</button>':'')+'</div>';
 }
 async function lookupForModification(){
