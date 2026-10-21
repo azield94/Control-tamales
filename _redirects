@@ -1,3 +1,4 @@
 /control-tamales    /index.html    200
 /abis-tamales       /abis_tamales_final.html    200
 /abis_tamales_final /abis_tamales_final.html    200
+/m/:token https://yuddjqscdzbkujmdteyz.supabase.co/functions/v1/sms-action?token=:token 200
